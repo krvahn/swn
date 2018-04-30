@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.MANUAL_VALUE">
+    <select id='selectOneManualValuePlantData' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+			ww_code						WW_CODE 
+			, drive_rate				DRIVE_RATE 
+			, pac						PAC
+			, pacs						PACS 
+			, front						FRONT
+			, rear						REAR
+			, powder					POWDER
+			, filter_time				FILTER_TIME
+			, discharge					DISCHARGE
+			, temp_max					TEMP_MAX
+			, temp_min					TEMP_MIN
+			, prod_water				PROD_WATER 
+			, take_water				TAKE_WATER
+			, send_water				SEND_WATER
+			, al_ga						AL_GA
+			, al_so						AL_SO
+			, pahcs						PAHCS
+			, cd00 						CD00
+       	FROM
+       		wb_manage_val
+       	WHERE
+       		ww_code = #{WW_CODE}
+       		AND anal_date = #{WORK_DATE}
+       		AND ROWNUM = 1
+    </select>
+    
+    <select id='selectManualValuePlantPointDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	WMP.point_code						POINT_CODE
+        	, WMP.point_name					POINT_NAME
+        	, WMP.unit							UNIT
+        	, WM.anal_date						ANAL_DATE
+			, WM.item_val1						ITEM_VAL1
+			, WM.item_val2						ITEM_VAL2
+			, WM.item_val3						ITEM_VAL3
+		FROM
+			wb_manage_point WMP LEFT OUTER JOIN wb_manage_point_val WM on WMP.point_code = WM.point_code
+				AND WM.anal_date = #{WORK_DATE}
+				AND WM.item_type = #{ITEM_TYPE}
+		WHERE 
+			WMP.point_type = #{POINT_TYPE}
+			AND WMP.ww_code = #{WW_CODE}
+		ORDER BY
+			WMP.unit
+			, WMP.point_name
+    </select>
+    
+    <select id='selectManualValuePlantItemDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	WMI.seq																			ITEM_CODE
+        	, WMI.item_unit																	ITEM_UNIT
+        	, WMI.item_name																	ITEM_NAME
+        	, WMP.item_val1																	ITEM_VAL1
+        	, WMI.water_type																WATER_TYPE
+        	, WMI.output_order																OUTPUT_ORDER
+        	,(CASE WHEN MAX(WMI.low) IS NOT NULL THEN MAX(WMI.low) ELSE null END) 			LOW
+        	,(CASE WHEN MAX(WMI.high) IS NOT NULL THEN MAX(WMI.high) ELSE null END) 		HIGH
+        	,(CASE water_type 
+        		WHEN 'O' THEN '원수'
+        		WHEN 'I' THEN '취수'  
+        		WHEN 'P' then '정수' 
+        		WHEN 'T' then '조류수' 
+        		ELSE '' 
+        	END)																			WATER_TEXT
+       	FROM
+       		wb_manage_item WMI LEFT OUTER JOIN wb_manage_point_val WMP on WMI.seq = WMP.item_seq
+       			AND WMP.anal_date = #{WORK_DATE}
+       			AND WMP.ww_code = #{WW_CODE}
+       	GROUP BY
+       		item_name 
+       		,water_type ,output_order 
+       	ORDER BY
+       		water_type
+       		, WMI.output_order
+    </select>
+    
+    <select id='selectOneManualValuePlantHorseDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	item_val1				ITEM_VAL1
+        	, item_val2				ITEM_VAL2
+       	FROM
+       		wb_other_val
+       	WHERE
+       		anal_date = #{WORK_DATE}
+       		AND point_code = #{POINT_CODE}
+       		AND order_num = #{ORDER_NUM}
+       		AND ROWNUM = 1
+    </select>
+    
+    <delete id='deleteManageVal' parameterType="java.util.HashMap">
+        DELETE
+        FROM
+        	wb_manage_val
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND anal_date = #{WORK_DATE}
+    </delete>
+    
+    <insert id='insertManageVal' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_manage_val
+        	(
+        		write_date
+        		, ww_code
+        		, writer_id
+        		, drive_rate
+        		, pac
+        		, pacs
+        		, front
+        		, rear
+        		, powder
+        		, filter_time
+        		, discharge
+        		, temp_max
+        		, temp_min
+        		, anal_date
+        		, prod_water
+        		, take_water
+        		, send_water
+        		, writer_name
+        		, al_ga
+        		, al_so
+        		, pahcs
+        		, cd00
+        	)
+        VALUES
+        	(
+        		TO_CHAR(sys_datetime, 'YYYYMMDD')
+        		, #{WW_CODE}
+        		, #{USER_ID}
+        		, #{DRIVE_RATE}
+        		, #{PAC}
+        		, #{PACS}
+        		, #{FRONT}
+        		, #{REAR}
+        		, #{POWDER}
+        		, #{FILTER_TIME}
+        		, #{DISCHARGE}
+        		, #{TEMP_MAX}
+        		, #{TEMP_MIN}
+        		, #{WORK_DATE}
+        		, #{PROD_WATER}
+        		, #{TAKE_WATER}
+        		, #{SEND_WATER}
+        		, #{USER_NAME}
+        		, #{AL_GA}
+        		, #{AL_SO}
+        		, #{PAHCS}
+        		, #{CD00}
+        	)
+    </insert>
+    
+    <delete id='deleteManagePointVal' parameterType="java.util.HashMap">
+        DELETE
+        FROM
+        	wb_manage_point_val
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND anal_date = #{WORK_DATE}
+        	AND item_type = #{POINT_TYPE}
+    </delete>
+    
+    <insert id='insertManagePointVal' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_manage_point_val
+        	(
+        		anal_date
+        		, point_code
+        		, item_val1
+        		, item_val2
+        		, item_val3
+        		, item_code
+        		, item_seq
+        		, item_type
+        		, ww_code
+        	)
+        VALUES
+        	(
+        		#{WORK_DATE}
+        		, #{POINT_CODE}
+        		, #{ITEM_VAL1}
+        		, #{ITEM_VAL2}
+        		, #{ITEM_VAL3}
+        		, null
+        		, #{ITEM_SEQ}
+        		, #{POINT_TYPE}
+        		, #{WW_CODE}
+        	)
+    </insert>
+    
+    <delete id='deleteOtherVal' parameterType="java.util.HashMap">
+        DELETE
+        FROM
+        	wb_other_val
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND point_code = #{POINT_CODE}
+        	AND anal_date = #{WORK_DATE}
+    </delete>
+    
+    <insert id='insertOtherVal' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_other_val
+        	(
+        		point_code
+        		, anal_date
+        		, write_date
+        		, ww_code
+        		, order_num
+        		, item_val1
+        		, item_val2
+        	)
+        VALUES
+        	(
+        		#{POINT_CODE}
+        		, #{WORK_DATE}
+        		, TO_CHAR(sys_datetime, 'YYYYMMDD')
+        		, #{WW_CODE}
+        		, #{ORDER_NUM}
+        		, #{ITEM_VAL1}
+        		, #{ITEM_VAL2}
+        	)
+    </insert>
+    
+    <select id='selectManualValueInOutResultExistDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	(
+        		CASE WAI.item_kname
+        			WHEN '' THEN WAI.item_ename 
+        			ELSE WAI.item_kname END 
+     		) 										ITEM_KNAME
+			, WAI.item_code							ITEM_CODE
+			, WIS.env_low							ENV_LOW
+			, WIS.env_high							ENV_HIGH
+			, WIS.eat_low							EAT_LOW
+			, WIS.eat_high							EAT_HIGH
+			, data_val								DATA_VAL
+		FROM
+			wb_lab_item WAI
+			, wb_lab_item_standard WIS
+			, wb_data_lab WDL
+		WHERE 
+			WIS.item_code = WAI.item_code
+			AND WIS.item_code = WDL.item_code
+			AND WAI.ww_type = 'P'			
+			AND WAI.check_cycle = #{CHECK_CYCLE}
+			AND WDL.ww_code = #{WW_CODE}
+			AND WDL.anal_date = #{WORK_DATE}
+			AND WDL.water_type = #{WATER_TYPE}			
+		ORDER BY
+			WAI.water_type
+			, output_order
+    </select>
+    
+    <select id='selectManualValueInOutResultDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	(
+        		CASE WAI.item_kname
+        			WHEN '' THEN WAI.item_ename 
+        			ELSE WAI.item_kname END 
+     		) 										ITEM_KNAME
+			, WAI.item_code							ITEM_CODE
+			, WIS.env_low							ENV_LOW
+			, WIS.env_high							ENV_HIGH
+			, WIS.eat_low							EAT_LOW
+			, WIS.eat_high							EAT_HIGH
+			, null									DATA_VAL
+		FROM
+			wb_lab_item WAI
+			, wb_lab_item_standard WIS
+		WHERE 
+			WIS.item_code = WAI.item_code
+			AND WAI.ww_type = 'P'
+			AND WAI.water_type = #{WATER_TYPE}
+			AND WAI.check_cycle = #{CHECK_CYCLE}			
+		ORDER BY
+			WAI.water_type
+			, output_order
+    </select>
+    
+    <delete id='deleteDataLab' parameterType="java.util.HashMap">
+        DELETE FROM
+        	wb_data_lab
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND anal_date = #{WORK_DATE}
+    </delete>
+    
+    <insert id='insertDataLab' parameterType="java.util.HashMap">
+        INSERT INTO        	
+        	wb_data_lab
+        	(
+        		ww_code
+        		, anal_date
+        		, item_code
+        		, water_type
+        		, data_val
+        	)
+        VALUES
+        	(
+        		#{WW_CODE}
+        		, #{WORK_DATE}
+        		, #{ITEM_CODE}
+        		, #{WATER_TYPE}
+        		, #{DATA_VAL_${ITEM_CODE}_${INDEX}}
+        	)
+    </insert>
+    
+    <select id='selectLabManualValueBaselineStanrdPointValDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	T.point_code			POINT_CODE
+        	, T.point_name			POINT_NAME
+        	, T.item_code			ITEM_CODE
+        	, T.item_name			ITEM_NAME
+        	, T.item_type			ITEM_TYPE
+        	, T.unit				UNIT
+        	, WSP.writer_id			WRITE_ID
+        	, WSP.anal_date			ANAL_DATE
+        	, WSP.item_val1			ITEM_VAL1
+        	, WSP.item_val2			ITEM_VAL2
+        	, WSP.item_val3			ITEM_VAL3
+        	, WSP.remark			REMARK
+        	, WSP.tel_num 			TEL_NUM
+       	FROM (
+       		SELECT 
+       			WMP.point_code
+       			, WMP.point_name
+       			, WSI.item_code
+       			, WSI.item_name
+       			, WSI.item_type
+       			, WMP.unit 
+     		FROM
+     			wb_standard_anal_master WSA
+     			, wb_standard_item WSI
+     			, wb_manage_point WMP 
+    		WHERE
+    			WSA.item_code = WSI.item_code
+    			and WSA.point_code = WMP.point_code 
+    			and WMP.ww_code = #{WW_CODE} 
+ 		) T(point_code,point_name,item_code,item_name,item_type,unit) 
+ 			LEFT OUTER JOIN wb_standard_point_val WSP on T.point_code = WSP.point_code 
+ 				and T.item_code = WSP.item_code 
+ 				and WSP.anal_date = #{WORK_DATE} 
+		ORDER BY
+			T.item_code
+			, T.point_code
+    </select>
+    
+    <delete id='deleteStandardPointVal'>
+        DELETE FROM
+        	wb_standard_point_val
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND anal_date = #{WORK_DATE}
+    </delete>
+    
+    <delete id='insertStandardPointVal'>
+        INSERT INTO        	
+        	wb_standard_point_val
+        	(
+        		item_code
+        		, anal_date
+        		, write_date
+        		, writer_id
+        		, item_val1
+        		, item_val2
+        		, item_val3
+        		, point_code
+        		, remark
+        		, tel_num
+        		, ww_code
+        	)
+        VALUES
+        	(
+        		#{ITEM_CODE}
+        		, #{WORK_DATE}
+        		, TO_CHAR(sys_datetime, 'YYYYMMDD')
+        		, #{USER_ID}
+        		, #{ITEM_VAL1_${POINT_CODE}_${ITEM_CODE}}
+        		, #{ITEM_VAL2_${POINT_CODE}_${ITEM_CODE}}
+        		, #{ITEM_VAL3_${POINT_CODE}_${ITEM_CODE}}
+        		, #{POINT_CODE}
+        		, #{REMARK_${POINT_CODE}_${ITEM_CODE}}
+        		, #{TEL_NUM}
+        		, #{WW_CODE}
+        	)
+    </delete>
+    
+    <select id='selectManualValuePowerDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	WMP.point_code						POINT_CODE
+        	, WMP.point_name					POINT_NAME
+        	, WMP.unit							UNIT
+        	, WM.anal_date						ANAL_DATE
+			, WM.morning						MORNING
+			, WM.evening						EVENING
+			, WM.night							NIGHT
+			, WM.peak 							PEAK
+		FROM
+			wb_manage_point WMP LEFT OUTER JOIN wb_elec_val WM ON WMP.point_code = WM.point_code
+			AND WM.anal_date = #{WORK_DATE}
+		WHERE
+			WMP.point_type = 'E'
+			AND WMP.ww_code = #{WW_CODE}
+    </select>
+    
+    <delete id='deleteElecVal' parameterType="java.util.HashMap" >
+        DELETE FROM
+        	wb_elec_val
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND anal_date = #{WORK_DATE}
+    </delete>
+    
+    <insert id='insertElecVal' parameterType="java.util.HashMap" >
+        INSERT INTO
+        	wb_elec_val
+        	(
+        		anal_date
+        		, write_date
+        		, peak
+        		, morning
+        		, evening
+        		, night
+        		, point_code
+        		, ww_code
+        	)
+        VALUES
+        	(
+        		#{WORK_DATE}
+        		, TO_CHAR(sys_datetime, 'YYYYMMDD')
+        		, #{PEAK_${POINT_CODE}} 
+        		, #{MORNING_${POINT_CODE}}
+        		, #{EVENING_${POINT_CODE}}
+        		, #{NIGHT_${POINT_CODE}}
+        		, #{POINT_CODE}
+        		, #{WW_CODE}
+        	)
+    </insert>
+    
+    <select id='selectManualValueWaterExistDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	(
+        		CASE WLI.item_kname
+        			WHEN '' THEN WLI.item_ename 
+        			ELSE WLI.item_kname END 
+     		) 										ITEM_KNAME  
+        	, WLI.item_code							ITEM_CODE
+			, WLIS.env_low							ENV_LOW
+			, WLIS.env_high							ENV_HIGH
+			, WLIS.eat_low							EAT_LOW
+			, WLIS.eat_high							EAT_HIGH
+			, pr0055								PR0055
+			, pr0065								PR0065
+			, pr0183								PR0183
+			, pr0370								PR0370
+			, pr0407								PR0407
+			, pr0710								PR0710
+		FROM 
+			wb_lab_item_standard WLIS
+			, wb_lab_item WLI
+			, wb_data_lab_wo WDL
+		WHERE
+			WLI.item_code = WLIS.item_code
+			AND WLI.item_code = WDL.item_code
+			AND WLI.ww_type = 'W'
+			AND WLI.check_cycle = #{CHECK_CYCLE}
+			AND WDL.anal_date = #{WORK_DATE}
+			AND WDL.water_type = #{WATER_TYPE}
+		ORDER BY
+			output_order
+    </select>
+    
+    <select id='selectManualValueWaterDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	(
+        		CASE WLI.item_kname
+        			WHEN '' THEN WLI.item_ename 
+        			ELSE WLI.item_kname END 
+     		) 										ITEM_KNAME  
+        	, WLI.item_code							ITEM_CODE
+			, WLIS.env_low							ENV_LOW
+			, WLIS.env_high							ENV_HIGH
+			, WLIS.eat_low							EAT_LOW
+			, WLIS.eat_high							EAT_HIGH
+			, null									PR0055
+			, null									PR0065
+			, null									PR0183
+			, null									PR0370
+			, null									PR0407
+			, null									PR0710
+		FROM 
+			wb_lab_item_standard WLIS
+			, wb_lab_item WLI
+		WHERE
+			WLI.item_code = WLIS.item_code
+			AND WLI.check_cycle = #{CHECK_CYCLE}
+			AND WLI.ww_type = 'W'
+			AND WLI.water_type in ('A',#{WATER_TYPE})
+		ORDER BY
+			output_order
+    </select>
+    
+    <delete id='deleteDataLabWO' parameterType="java.util.HashMap">
+        DELETE FROM
+        	wb_data_lab_wo
+        WHERE
+        	anal_date = #{WORK_DATE}
+        	AND water_type = #{WATER_TYPE}
+    </delete>
+    
+    <insert id='insertDataLabWO' parameterType="java.util.HashMap">
+        INSERT INTO        	
+        	wb_data_lab_wo
+        	(
+        		item_code
+        		, anal_date
+        		, water_type
+        		, pr0055
+        		, pr0065
+        		, pr0183
+        		, pr0370
+        		, pr0407
+        		, pr0710
+        		, data_year
+        		, data_month
+        		, data_day
+        	)
+        VALUES
+        	(
+        		#{ITEM_CODE}
+        		, #{WORK_DATE}
+        		, #{WATER_TYPE}
+        		, #{DATA_VAL_PR0055_${ITEM_CODE}_${INDEX}}
+        		, #{DATA_VAL_PR0065_${ITEM_CODE}_${INDEX}}
+        		, #{DATA_VAL_PR0183_${ITEM_CODE}_${INDEX}}
+        		, #{DATA_VAL_PR0370_${ITEM_CODE}_${INDEX}}
+        		, #{DATA_VAL_PR0407_${ITEM_CODE}_${INDEX}}
+        		, #{DATA_VAL_PR0710_${ITEM_CODE}_${INDEX}}
+        		, #{YEAR}
+        		, #{MONTH}
+        		, #{DAY}
+        	)
+    </insert>
+</mapper>

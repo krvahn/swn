@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration PUBLIC
+	"-//mybatis.org/DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+	
+<configuration>
+    <environments default="developmenet">
+        <environment id="developmenet">
+            <transactionManager type="JDBC"/>
+	        <dataSource type="POOLED">
+	            <property name="driver" value="cubrid.jdbc.driver.CUBRIDDriver"/>
+	            <property name="url" value="jdbc:CUBRID:192.168.128.128:33000:water:::"/>
+	            <property name="username" value="dba"/>
+	            <property name="password" value="wooritns"/>
+	        </dataSource>
+        </environment>
+    </environments>
+    
+    <mappers>
+        <mapper resource="sql-mapper_board.xml"/>
+        <mapper resource="sql-mapper_code.xml"/>
+        <mapper resource="sql-mapper_map.xml"/>
+        <mapper resource="sql-mapper_real.xml"/>
+        <mapper resource="sql-mapper_history.xml"/>               
+        <mapper resource="sql-mapper_manual_search_day.xml"/>
+        <mapper resource="sql-mapper_manual_search_etc.xml"/>
+        <mapper resource="sql-mapper_manual_value.xml"/>
+        <mapper resource="sql-mapper_manual_item.xml"/> 
+        <mapper resource="sql-mapper_system.xml"/>
+        <mapper resource="sql-mapper_oper.xml"/>
+	</mappers>
+</configuration>

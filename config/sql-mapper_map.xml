@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.MAP">
+    <!-- 측근 측정치 데이터 가져 오기 -->
+    <select id='selectCurrentDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_item_val 			ITEM_VAL
+        	,anal_point_code		POINT_CODE
+        	,anal_item_code			ITEM_CODE
+        	,anal_date				ANAL_DATE
+        FROM
+        	wb_currdata
+		<if test='POINT_CODE != ""'>        	
+        WHERE
+        	anal_point_code = #{POINT_CODE}
+		</if>
+		ORDER BY
+			anal_date
+    </select>
+</mapper>

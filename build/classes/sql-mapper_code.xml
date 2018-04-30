@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.CODE">
+    <!-- 사용자 정보 가져 오기 -->
+    <select id='selectOneLoginUserInfo' parameterType='java.util.HashMap' resultType='kr.go.seoul.water.sql.vo.UserInfoVO'>
+		SELECT
+			WU.user_id					USER_ID
+			,WU.ww_code					WW_CODE
+			,WU.user_name				USER_NAME
+			,WU.pwd						PWD
+			,WU.group_code				GROUP_CODE
+			,WU.user_auth				USER_AUTH
+			,WG.group_auth				GROUP_AUTH
+		FROM
+			wb_user_info WU
+			, wb_user_group WG
+		WHERE
+			WU.group_code = WG.group_code
+			AND WU.user_id = #{USER_ID}
+			AND WU.pwd = #{USER_PWD}			
+			AND (WU.expire_flag = '1' OR WU.expire_flag = 'N')
+	</select>
+	
+	<!-- 측정 포인트에 대한 WWCode 얻기 -->
+	<select id='selectOneWWCode' parameterType='String' resultType='String'>
+		SELECT 
+			ww_code
+		FROM 
+			wb_anal_point		
+		WHERE 
+			anal_point_code = #{pointCode}	
+	</select>
+     
+    <!-- 최근 측정 일자 가져 오기 -->
+    <select id='selectOneCurrDataRecord_MaxAnalDate' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	MAX(anal_date) MAX_ANAL_DATE
+        FROM
+        	wb_currdata
+		<if test='WW_CODE != ""'>        	
+        WHERE
+        	ww_code = #{WW_CODE}
+		</if>
+    </select>
+    
+    <!-- 측정아이템 정보 리스트 -->
+    <select id="selectItemCodeList" parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	item_code														CODE	<!-- import -->
+        	, anal_item_name												NAME	<!-- import -->
+        	, anal_unit														ITEM_UNIT
+    	FROM
+    		wb_anal_item
+    </select>
+    
+    <!-- 정수센터/수도사업소 정보 가져오기 -->
+    <select id='selectOneWallWaterRecord' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			ww_code									CODE
+		    , ww_name || (
+		    	CASE ww_type
+		    		WHEN 'P' THEN '아리수정수센터'
+		    		WHEN 'W' THEN '수도사업소'
+		    		ELSE ''
+		    	END
+		    )										NAME
+		    , telnum								TELNUM
+		    , manager_name							MANAGER_NAME
+		FROM
+			wb_wellwater
+		WHERE
+			ww_code = #{WW_CODE}
+			AND (UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+			AND ROWNUM = 1
+    </select>    
+    
+    <!-- 정수센터/수도사업소 전체 리스트 -->
+    <select id='selectWallWaterCodeAllList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			ww_code									CODE
+		    , ww_name || (
+		    	CASE ww_type
+		    		WHEN 'P' THEN '아리수정수센터'
+		    		WHEN 'W' THEN '수도사업소'
+		    		ELSE ''
+		    	END
+		    )										NAME
+		FROM
+			wb_wellwater
+		WHERE
+			(UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+			AND (ww_type = 'W' OR ww_type = 'P')
+		ORDER BY
+			output_order;
+    </select>
+    
+    <!-- 정수센터/수도사업소 측정지점 전체 리스트 -->
+    <select id='selectPointCodeAllList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			c.anal_point_code									CODE
+		    , a.ww_name ||
+		    (
+		    	CASE a.ww_type
+		    		WHEN 'P' THEN '아리수정수센터'
+		    		WHEN 'W' THEN '수도사업소'
+		    		ELSE ''
+		    	END
+		    ) || ' ' ||
+		    (
+		    	CASE a.ww_type
+		    		WHEN 'P' THEN
+		    			(
+		    				CASE c.factory_code
+		    					WHEN '0' THEN ''
+								WHEN '5' THEN '정수장(강북)'
+ 		     					WHEN '6' THEN '정수장(자양)'
+		    					ELSE c.factory_code + '정수장 '
+		    				END
+		    			)
+		    		ELSE ''
+		    	END
+		    ) ||
+		    c.anal_point_name							NAME
+		FROM
+			wb_wellwater a
+			, wb_anal_point c
+		WHERE
+			a.ww_code = c.ww_code
+			AND (UPPER(a.use_flag) = 'Y' OR UPPER(a.use_flag) = 'U')
+			AND (a.ww_type = 'W' OR a.ww_type = 'P')
+		ORDER BY
+			a.ww_type
+			, a.ww_code
+			, c.anal_point_code
+    </select>
+    
+    <!-- 사용자 정수센터/수도사업소 측정지점 리스트 -->
+    <select id='selectUserSelectPointCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			b.anal_point_code									CODE
+		    , a.ww_name ||
+		    (
+		    	CASE a.ww_type
+		    		WHEN 'P' THEN '아리수정수센터'
+		    		WHEN 'W' THEN '수도사업소'
+		    		ELSE ''
+		    	END
+		    ) || ' ' ||
+		    (
+		    	CASE a.ww_type
+		    		WHEN 'P' THEN
+		    			(
+		    				CASE c.factory_code
+		    					WHEN '0' THEN ''
+								WHEN '5' THEN '정수장(강북)'
+ 		     					WHEN '6' THEN '정수장(자양)'
+		    					ELSE c.factory_code + '정수장 '
+		    				END
+		    			)
+		    		ELSE ''
+		    	END
+		    ) ||
+		    c.anal_point_name							NAME
+		FROM
+			wb_wellwater a
+			, wb_user_wwcode b
+			, wb_anal_point c
+		WHERE
+			a.ww_code = b.ww_code
+			AND b.anal_point_code = c.anal_point_code
+			AND (UPPER(a.use_flag) = 'Y' OR UPPER(a.use_flag) = 'U')
+			AND (a.ww_type = 'W' OR a.ww_type = 'P')
+			AND b.user_id = #{USER_ID}
+		ORDER BY
+			a.ww_type
+			, a.ww_code
+			, b.anal_point_code
+    </select>
+    
+    <!-- 정수센터/수도사업소 리스트 -->
+    <select id='selectWellWaterCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			ww_code									CODE
+		    , ww_name								NAME
+		FROM
+			wb_wellwater
+		WHERE
+			(UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+		<if test='WW_TYPE != ""'>
+    		AND ww_type = #{WW_TYPE}
+		</if> 
+		ORDER BY
+			output_order;
+    </select>
+    
+    <!-- 정수센터/수도사업소 수계 공급 과정 수도사업소 코드 리스트 -->
+    <select id='selectWellWaterPathWWCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+			DISTINCT A.ww_code						CODE
+			, A.ww_name								NAME
+		FROM
+			wb_wellwater A
+			, wb_anal_point B
+		WHERE
+			A.ww_code = B.ww_code
+			AND B.water_path = #{WW_CODE}
+			AND (UPPER(A.use_flag) = 'Y' OR UPPER(A.use_flag) = 'U')
+		<if test='WW_TYPE != ""'>
+    		AND A.ww_type = #{WW_TYPE}
+		</if> 	
+    </select>
+    
+    <!-- 수도사업소 측정 지점 코드 리스트 -->
+    <select id='selectWaterPointCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_point_code		CODE
+        	, anal_point_name	NAME
+        	, type_name			TYPE_NAME
+		FROM
+			wb_anal_point WAP
+			, wb_point_class WPC
+		WHERE
+			WAP.point_class_code = WPC.type_code
+			AND WAP.ww_code = #{WW_CODE}
+			AND (UPPER(USE_FLAG) = 'Y' OR UPPER(USE_FLAG) = 'U')
+    </select>
+    
+    <!-- 정수센터 측정 지점 코드 리스트 -->
+    <select id='selectPlantPointCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_point_code									CODE
+        	, (
+        		CASE factory_code 
+        		WHEN '9' THEN anal_point_name + ''
+				WHEN '0' THEN anal_point_name + '' 
+				WHEN '1' THEN anal_point_name + '(1정수장)'
+				WHEN '2' THEN anal_point_name + '(2정수장)'
+				WHEN '3' THEN anal_point_name + '(3정수장)'
+				WHEN '4' THEN anal_point_name + '(정수장_암사)'
+				WHEN '5' THEN anal_point_name + '(정수장_강북)'
+				WHEN '6' THEN anal_point_name + '(정수장_자양)'
+				WHEN '7' THEN anal_point_name + '(정수장_팔당)'
+ 		     	WHEN '8' THEN anal_point_name + '(정수장_풍납)'
+				ELSE '' END
+			) 												NAME
+		FROM
+			wb_anal_point
+		WHERE
+			ww_code = #{WW_CODE}
+			AND (UPPER(USE_FLAG) = 'Y' OR UPPER(USE_FLAG) = 'U')
+    </select>
+    
+    <!-- 정수센터 수계내 측정지점 리스트 -->
+    <select id="selectPlantWaterPathPointCodeList" parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+    	SELECT 
+			WAP.anal_point_code						CODE
+			, WAP.anal_point_name					NAME
+			, WAP.ww_code							WW_CODE
+			, WPC.type_name							TYPE_NAME			 
+		FROM 
+			wb_anal_point WAP
+			, wb_point_class WPC 
+		WHERE 
+			WAP.point_class_code = WPC.type_code 
+			AND water_path = #{WW_CODE}
+		ORDER BY 
+			WAP.anal_point_code
+	</select>
+    
+    <!-- 수도사업소 측정지점 아이템 리스트 -->
+    <select id='selectWaterPointItemCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+			WAI.item_code														CODE	<!-- import -->
+			,WAI.anal_item_name													NAME	<!-- import -->
+			,WAI.anal_unit														ITEM_UNIT
+			,WAP.anal_point_name												POINT_NAME
+			,(select ww_name from wb_wellwater where ww_code = WAP.water_path)	WW_NAME
+			,WIS.law_upper														LAW_UPPER
+			,WIS.law_lower														LAW_LOWER
+			<!--  
+			,COALESCE(WIS.law_upper,3000)										LAW_UPPER
+			,COALESCE(WIS.law_lower,-30) 										LAW_LOWER
+			--> 
+		FROM 
+			wb_anal_item WAI
+			,wb_item_standard WIS
+			,wb_anal_master WAM
+			,wb_anal_point WAP
+		WHERE
+			WAM.point_code = #{POINT_CODE}
+			AND WAI.item_code = WIS.item_code 
+			AND WAM.point_code = WAP.anal_point_code 
+			AND WAM.item_code = WAI.item_code
+		ORDER BY 
+			WAI.output_order
+			,WAI.item_code
+    </select>
+    
+    <!-- 정수센터 측정지점 아이템 리스트 -->
+    <select id='selectPlantPointItemCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+			WAI.item_code						CODE	<!-- import -->
+			,WAI.anal_item_name					NAME	<!-- import -->
+			,WAI.anal_unit						ITEM_UNIT
+			,WAM.point_remark					REMARK			
+			,WAP.anal_point_name				POINT_NAME
+			,WW.ww_name							WW_NAME
+			,WIS.law_upper						LAW_UPPER
+			,WIS.law_lower						LAW_LOWER
+			<!--  
+			,COALESCE(WIS.law_upper,3000)		LAW_UPPER
+			,COALESCE(WIS.law_lower,-30) 		LAW_LOWER
+			--> 
+		FROM 
+			wb_anal_item WAI
+			,wb_item_standard WIS
+			,wb_anal_master WAM
+			,wb_anal_point WAP
+			,wb_wellwater WW
+		WHERE
+			WAM.point_code = #{POINT_CODE}
+			AND WAI.item_code = WIS.item_code 
+			AND WW.ww_code = WAP.ww_code 
+			AND WAM.point_code = WAP.anal_point_code 
+			AND WAM.item_code = WAI.item_code 
+			AND WW.ww_type = 'P'
+		ORDER BY 
+			WAI.output_order
+			,WAI.item_code
+    </select>
+    
+    <!-- 정수센터 공정코드 리스트 -->
+    <select id='selectPlantFactoryCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	DISTINCT factory_code							CODE
+        	, (CASE factory_code 
+        		WHEN '9' THEN 'N/A' 
+        		WHEN '0' THEN '공통' 
+        		WHEN '1' THEN '1정수장' 
+        		WHEN '2' THEN '2정수장' 
+        		WHEN '3' THEN '3정수장'
+				WHEN '4' THEN '(정수장_암사)' 
+				WHEN '5' THEN '(정수장_강북)'
+				WHEN '6' THEN '(정수장_자양)'
+				WHEN '7' THEN '(정수장_팔당)'
+ 		     	WHEN '8' THEN '(정수장_풍납)'
+				anal_point_name + 
+				ELSE '' END )								NAME
+		FROM
+			wb_anal_point WAP
+		WHERE 
+			ww_code = #{WW_CODE}
+			AND (UPPER(USE_FLAG) = 'Y' OR UPPER(USE_FLAG) = 'U')
+			AND SUBSTRING(ww_code FROM 0 for 1) = 'P'
+    </select>
+    
+    <!-- 정수센터 공정별 측정지점 리스트 -->
+    <select id='selectPlantFactoryPointCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_point_code									CODE
+        	, anal_point_name								NAME
+		FROM
+			wb_anal_point
+		WHERE
+			ww_code = #{WW_CODE}
+			AND factory_code = #{FACTORY_CODE}
+			AND (UPPER(USE_FLAG) = 'Y' OR UPPER(USE_FLAG) = 'U')
+			AND SUBSTRING(ww_code FROM 0 for 1) = 'P'
+    </select>
+    
+    <!-- 정수센터 측정위치 리스트 -->
+    <select id='selectPlantPointClassCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	type_code								CODE
+        	,type_name								NAME
+		FROM 
+			wb_point_class		
+		WHERE 
+			ww_type='P'
+			<!-- AND type_code not IN ('03','06')  -->
+    </select>
+    
+    <!-- 측정위치 리스트 -->
+    <select id='selectPointClassCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	type_code							CODE
+        	,type_name							NAME
+		FROM 
+			wb_point_class
+    </select>
+    
+    <!-- 수도사업소 측정위치 리스트 -->
+    <select id='selectWaterPointClassCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	type_code							CODE
+        	,type_name							NAME
+		FROM 
+			wb_point_class		
+		WHERE 
+			ww_type = 'W'
+    </select>
+    
+    <!-- 상태정보 코드 - 대분류 -->
+    <select id='selectStatusTopCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	top_status_code							CODE
+        	,top_status_name						NAME
+		FROM 
+			wb_top_status		
+		WHERE 
+			use_flag = 'U'
+		ORDER BY
+			top_status_code
+    </select>
+    
+    <!-- 실험실 측정 아이템 코드 -->
+    <select id='selectLabItem16CodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	item_code							CODE
+        	,item_kname						NAME
+		FROM 
+			wb_lab_item		
+		WHERE 
+			item_16 = 'Y'
+    </select>
+    
+    <!-- 사용자 그룹 목록 코드 -->
+    <select id='selectGroupCodeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	group_code						CODE
+        	,group_name						NAME
+		FROM 
+			wb_user_group
+    </select>
+</mapper>

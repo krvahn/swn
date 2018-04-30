@@ -1,0 +1,364 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.REAL">
+    <!-- 실시간 수질정보 - 종합요약 정보 (수도사업소별) -->
+    <select id='selectTotalSummaryWaterList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+            WW.ww_code                                                                  		WW_CODE
+        	,WW.ww_name                                                                 		WW_NAME
+        	,WDM.anal_point_code                                                        		POINT_CODE
+            ,WAP.anal_point_name                                                        		POINT_NAME            
+            ,WPC.type_name																		TYPE_NAME
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end)   	TB01
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_status else null end)    STATUE_TB01
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_val else null end)   	TB02	
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_status else null end)    STATUE_TB02
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end)   	PH01
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_status else null end)    STATUE_PH01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end)   	TE01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_status else null end)    STATUE_TE01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_val else null end)   	RC01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_status else null end)    STATUE_RC01
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_val else null end)  		RC02
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_status else null end)    STATUE_RC02
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_val else null end)   	CD01
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_status else null end)    STATUE_CD01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_val else null end)   	LT01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_status else null end)    STATUE_LT01
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_val else null end)   	LT02
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_status else null end)    STATUE_LT02
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_val else null end)   	FTR1
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_status else null end)    STATUE_FTR1
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_val else null end)   	FTR2
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_status else null end)    STATUE_FTR2
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_val else null end)   	FTR3
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_status else null end)    STATUE_FTR3
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_val else null end)   	PT01
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_status else null end)    STATUE_PT01
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_val else null end)   	VOC5
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_status else null end)    STATUE_VOC5
+    	FROM
+    		wb_currdata     	WDM
+    		,wb_anal_point 		WAP
+    		,wb_wellwater   	WW
+    		,wb_point_class   	WPC
+	    WHERE
+	    	WDM.anal_point_code = WAP.anal_point_code
+	    	AND WPC.type_code = WAP.point_class_code
+	    	AND WAP.water_path = WW.ww_code
+	    	AND WAP.ww_code = #{WW_CODE}
+	    	AND (UPPER(WAP.USE_FLAG) = 'Y' OR UPPER(WAP.USE_FLAG) = 'U')
+    	GROUP BY
+    		WDM.anal_point_code
+    		,ww_name
+    		,WAP.anal_point_name
+    		,WPC.type_name
+    </select>
+    
+    <!-- 실시간 수질정보 - 종합요약 정보 (전체 정수센터) -->
+    <select id='selectTotalSummaryPlantList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+            WW.ww_code                                                                  		WW_CODE
+        	,WW.ww_name                                                                 		WW_NAME
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end)   	TB01
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end)   	PH01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end)   	TE01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_val else null end)   	RC01
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_val else null end)   	CD01
+	    	,max(case upper(anal_item_code) when 'TO01' then anal_item_val else null end)   	TO01
+	    	,max(case upper(anal_item_code) when 'NH01' then anal_item_val else null end)   	NH01
+     	FROM
+    		wb_currdata     	WDM
+    		,wb_wellwater   	WW
+	    WHERE
+	    	WDM.ww_code = WW.ww_code
+	    	AND WDM.anal_point_code in ('007','071','028','040','046','057')
+                GROUP BY
+    		WDM.anal_point_code
+    		,WDM.ww_code
+    </select>
+    
+    <!-- 실시간 수질정보 - 종합요약 정보 (실시간 수질요약 정보) -->
+    <select id='selectTotalSummaryPointsList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+            WW.ww_code                                                                  		WW_CODE
+        	,WW.ww_name                                                                 		WW_NAME
+        	,WDM.anal_point_code                                                        		POINT_CODE
+            ,WAP.anal_point_name                                                        		POINT_NAME
+            ,WPC.type_name																		TYPE_NAME
+            ,WDM.anal_date																		ANAL_DATE
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end)   	TB01
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_status else null end)    STATUE_TB01
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_val else null end)   	TB02	
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_status else null end)    STATUE_TB02
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end)   	PH01
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_status else null end)    STATUE_PH01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end)   	TE01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_status else null end)    STATUE_TE01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_val else null end)   	RC01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_status else null end)    STATUE_RC01
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_val else null end)  		RC02
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_status else null end)    STATUE_RC02
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_val else null end)   	CD01
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_status else null end)    STATUE_CD01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_val else null end)   	LT01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_status else null end)    STATUE_LT01
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_val else null end)   	LT02
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_status else null end)    STATUE_LT02
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_val else null end)   	FTR1
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_status else null end)    STATUE_FTR1
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_val else null end)   	FTR2
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_status else null end)    STATUE_FTR2
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_val else null end)   	FTR3
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_status else null end)    STATUE_FTR3
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_val else null end)   	PT01
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_status else null end)    STATUE_PT01
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_val else null end)   	VOC5
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_status else null end)    STATUE_VOC5
+    	FROM
+    		wb_currdata     	WDM
+    		,wb_anal_point 		WAP
+    		,wb_wellwater   	WW
+    		,wb_point_class   	WPC
+	    WHERE
+	    	WDM.anal_point_code = WAP.anal_point_code
+	    	AND WAP.ww_code in (SELECT ww_code FROM WB_WELLWATER WHERE ww_type='W' AND (UPPER(USE_FLAG) = 'Y' OR UPPER(USE_FLAG) = 'U'))
+	    	AND WPC.type_code = WAP.point_class_code
+	    	AND WAP.water_path = WW.ww_code
+    	GROUP BY
+    		WDM.anal_point_code
+    		,ww_name
+    		,WAP.anal_point_name
+    		,WPC.type_name
+    </select>
+    
+    <!-- 실시간 수질정보 - 아리수정수센터 - 취수 -->
+    <select id="selectTotalPlantSummaryInList" parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_point_code																	POINT_CODE
+        	, ww_code																		WW_CODE
+	    	, max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end) 	TB01
+	    	, max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end) 	PH01
+	    	, max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end) 	TE01
+	    	, max(case upper(anal_item_code) when 'PN01' then anal_item_val else null end) 	PN01
+	    	, max(case upper(anal_item_code) when 'SA01' then anal_item_val else null end) 	SA01
+	    	, max(case upper(anal_item_code) when 'TO01' then anal_item_val else null end) 	TO01
+	    	, max(case upper(anal_item_code) when 'NH01' then anal_item_val else null end) 	NH01
+	    FROM
+	    	wb_currdata
+	    WHERE
+	    	anal_point_code in ('001','070','024','035','041','052')
+	    GROUP BY
+	    	anal_point_code
+	    	, ww_code	    
+    </select>
+    
+    <!-- 실시간 수질정보 - 아리수정수센터 - 정수 -->
+    <select id="selectTotalPlantSummaryOutList" parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	anal_point_code																	POINT_CODE
+        	, ww_code																		WW_CODE
+	    	, max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end) 	TB01
+	    	, max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end) 	PH01
+	    	, max(case upper(anal_item_code) when 'RC01' then anal_item_val else null end) 	RC01
+	    	, max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end) 	TE01
+	    	, max(case upper(anal_item_code) when 'CD01' then anal_item_val else null end) 	CD01
+	    	, max(case upper(anal_item_code) when 'TO01' then anal_item_val else null end) 	TO01
+	    	, max(case upper(anal_item_code) when 'NH01' then anal_item_val else null end) 	NH01
+	    FROM
+	    	wb_currdata
+	    WHERE
+	    	anal_point_code in ('007','071','028','040','046','057')
+	    GROUP BY
+	    	anal_point_code
+	    	, ww_code	    
+    </select>
+    
+    <!-- 실시간 수질정보 - 아리수정수센터 - 정수센터별 정수공정 - 수질항목 또는 기타항목 -->
+        <select id='selectPlantSummaryProcessList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+           	DISTINCT anal_item_val 			ITEM_VAL
+           	, WAI.item_code 				ITEM_CODE
+	     	, WAI.item_kind					ITEM_KIND
+	     	, anal_date 					ANAL_DATE
+	     	, WDM.anal_point_code			POINT_CODE
+	     	, anal_item_status 				ITEM_STATUS
+	     	, WAI.anal_item_name			ANAL_ITEM_NAME
+	     	, WAI.anal_unit					ANAL_UNIT
+	     	, COALESCE(low,-30) 			LAW_LOWER1
+	     	, COALESCE(high,3000000) 		LAW_UPPER1
+	     	, (
+	     		CASE WAP.factory_code 
+		     		WHEN '9' THEN 'N/A' 
+		     		WHEN '0' THEN '공통' 
+		     		WHEN '1' THEN '1정수장' 
+		     		WHEN '2' THEN '2정수장' 
+		     		WHEN '3' THEN '3정수장' 
+		     		WHEN '4' THEN '암사'
+ 		     		WHEN '5' THEN '강북'
+ 		     		WHEN '6' THEN '자양'
+ 		     		WHEN '7' THEN '팔당'
+ 		     		WHEN '8' THEN '풍납'
+		     		ELSE '' 
+	     		END
+	     	) 								FACTORY_NAME 
+	     	, WAP.anal_point_name 			ANAL_POINT_NAME
+	     	, WIM.point_remark 				POINT_REMARK
+		 	, WAP.factory_code				FACTORY_CODE
+		 	, WAI.output_order1				OUTPUT_ORDER1
+		 	, WAI.output_order				OUTPUT_ORDER
+		 	, WDM.anal_item_code 			ANAL_ITEM_CODE
+	    FROM 
+	    	wb_anal_item WAI 
+	    	, wb_anal_point WAP
+	    	, wb_item_standard_1 WIS 
+	     	, wb_anal_master WIM LEFT OUTER JOIN wb_currdata WDM ON WDM.anal_item_code = WIM.item_code 
+	     		AND WDM.anal_point_code = WIM.point_code 
+	     		AND (WDM.anal_item_code &lt;&gt; 'FTA1' OR WDM.anal_item_code &lt;&gt; 'FTA2' )
+		WHERE 
+	     	WAP.anal_point_name = #{ANAL_POINT_NAME}
+<choose>
+	<when test='WW_CODE == "PR0065" &amp;&amp; ANAL_POINT_NAME == "취수장"'>
+	     	AND (WAP.ww_code = #{WW_CODE} or WAP.ww_code = 'PR0183')
+	</when>
+	<otherwise>
+			AND WAP.ww_code = #{WW_CODE}
+	</otherwise>
+</choose>
+	     	AND WIM.point_code = WAP.anal_point_code 
+	     	AND WAI.item_code = WIS.item_code 
+	     	AND WIM.item_code = WAI.item_code 
+	     	AND WIS.point_class = WAP.point_class_code 
+	     	AND WAI.item_code = WIM.item_code 
+	     	AND WDM.ww_code = WAP.ww_code 
+		ORDER BY 
+			WAI.item_kind
+			, WAP.factory_code
+		<if test='WW_CODE == "PR0407" &amp;&amp; ANAL_POINT_NAME == "취수장"'>
+			, WAI.output_order1
+		</if>
+		<if test='WW_CODE != "PR0407" || ANAL_POINT_NAME != "취수장"'>
+			, WAI.output_order
+		</if>	
+    </select>
+    
+    <!-- 실시간 수질정보 - 아리수정수센터 - 정수센터별 수계공급과정 -->
+    <select id='selectPlantSummaryProviderList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	T.anal_point_code															POINT_CODE
+        	, T.anal_date																ANAL_DATE
+        	, WAP.anal_point_name														POINT_NAME
+        	, WPC.type_name																TYPE_NAME
+        	, WAP.dis_order																DIS_ORDER
+        	, max(case upper(T.item_code) when 'TB01' then T.item_val else null end)	TB01
+        	, max(case upper(T.item_code) when 'TB02' then T.item_val else null end)	TB02
+        	, max(case upper(T.item_code) when 'PH01' then T.item_val else null end)	PH01
+        	, max(case upper(T.item_code) when 'RC01' then T.item_val else null end)	RC01
+        	, max(case upper(T.item_code) when 'TE01' then T.item_val else null end)	TE01
+        	, max(case upper(T.item_code) when 'CD01' then T.item_val else null end)	CD01
+        FROM
+        	(
+		<foreach collection="ITEM_CODES" item="ITEM_CODE" index="index" separator=" UNION " open="" close="">
+		    (
+			SELECT  anal_item_val , anal_item_code , anal_point_code, max(anal_date)
+ 			FROM wb_currdata 
+ 			where
+ 				upper(anal_item_code) = 'TB01' or
+ 				upper(anal_item_code) = 'TB02' or
+ 				upper(anal_item_code) = 'PH01' or
+ 				upper(anal_item_code) = 'RC01' or
+ 				upper(anal_item_code) = 'TE01' or
+ 				upper(anal_item_code) = 'CD01'
+ 			group by anal_point_code,  anal_item_code
+		    )
+		</foreach>
+        	) T(item_val, item_code, anal_point_code, anal_date)
+        	, wb_anal_point WAP
+        	, wb_point_class WPC
+        	, wb_wellwater WW
+        WHERE
+        	T.anal_point_code = WAP.anal_point_code
+        	AND WPC.type_code = WAP.point_class_code
+	    	AND WAP.ww_code = WW.ww_code
+        	AND WAP.water_path = #{WW_CODE}	    	
+	    GROUP BY 
+		T.anal_point_code
+	    	, WAP.anal_point_name
+	    	, WPC.type_name,dis_order
+	    ORDER BY
+	    	dis_order, POINT_NAME
+    </select>
+    
+    <!-- 실시간 수질정보 - 수도사업소 -->
+    <select id='selectWaterSummaryList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+            WW.ww_code                                                                  		WW_CODE
+        	,WW.ww_name                                                                 		WW_NAME
+        	,WDM.anal_point_code                                                        		POINT_CODE
+            ,WAP.anal_point_name                                                        		POINT_NAME
+            ,WPC.type_name																		TYPE_NAME
+            ,WDM.anal_date																		ANAL_DATE
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_val else null end)   	TB01
+			,max(case upper(anal_item_code) when 'TB01' then anal_item_status else 'OK' end)    STATUE_TB01
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_val else null end)   	TB02	
+	    	,max(case upper(anal_item_code) when 'TB02' then anal_item_status else 'OK' end)    STATUE_TB02
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_val else null end)   	PH01
+	    	,max(case upper(anal_item_code) when 'PH01' then anal_item_status else 'OK' end)    STATUE_PH01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_val else null end)   	TE01
+	    	,max(case upper(anal_item_code) when 'TE01' then anal_item_status else 'OK' end)    STATUE_TE01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_val else null end)   	RC01
+	    	,max(case upper(anal_item_code) when 'RC01' then anal_item_status else 'OK' end)    STATUE_RC01
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_val else null end)  		RC02
+	    	,max(case upper(anal_item_code) when 'RC02' then anal_item_status else 'OK' end)    STATUE_RC02
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_val else null end)   	CD01
+	    	,max(case upper(anal_item_code) when 'CD01' then anal_item_status else 'OK' end)    STATUE_CD01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_val else null end)   	LT01
+	    	,max(case upper(anal_item_code) when 'LT01' then anal_item_status else 'OK' end)    STATUE_LT01
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_val else null end)   	LT02
+	    	,max(case upper(anal_item_code) when 'LT02' then anal_item_status else 'OK' end)    STATUE_LT02
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_val else null end)   	FTR1
+	    	,max(case upper(anal_item_code) when 'FTR1' then anal_item_status else 'OK' end)    STATUE_FTR1
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_val else null end)   	FTR2
+	    	,max(case upper(anal_item_code) when 'FTR2' then anal_item_status else 'OK' end)    STATUE_FTR2
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_val else null end)   	FTR3
+	    	,max(case upper(anal_item_code) when 'FTR3' then anal_item_status else 'OK' end)    STATUE_FTR3
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_val else null end)   	PT01
+	    	,max(case upper(anal_item_code) when 'PT01' then anal_item_status else 'OK' end)    STATUE_PT01
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_val else null end)   	VOC5
+	    	,max(case upper(anal_item_code) when 'VOC5' then anal_item_status else 'OK' end)    STATUE_VOC5
+    	FROM
+    		wb_currdata     	WDM
+    		,wb_anal_point 		WAP
+    		,wb_wellwater   	WW
+    		,wb_point_class   	WPC
+	    WHERE
+	    	WDM.anal_point_code = WAP.anal_point_code
+	    	AND WPC.type_code = WAP.point_class_code
+	    	AND WAP.water_path = WW.ww_code
+	    	AND WAP.ww_code = #{WW_CODE}	    	
+	    	AND WDM.anal_date = 
+	    	(
+	    		SELECT 
+	    			anal_date 
+    			FROM 
+    				wb_currdata A
+    				, wb_anal_point B
+	    		WHERE 
+	    			anal_date BETWEEN #{FROM_DATE} AND #{TO_DATE} 
+	    			AND B.ww_code = #{WW_CODE}
+	    			AND A.anal_point_code = B.anal_point_code
+	    		ORDER BY
+	    			A.anal_date DESC FOR ORDERBY_NUM() BETWEEN 0 AND 1
+	    	)	
+    	GROUP BY
+    		WDM.anal_point_code
+    		,WDM.anal_date
+    		,ww_name
+    		,WAP.anal_point_name
+    		,WPC.type_name
+    </select>
+</mapper>

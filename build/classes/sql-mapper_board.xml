@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.board">
+    <!-- BoardAdmin 정보 가져 오기 -->
+    <select id='selectOneBoardAdmin' parameterType='java.util.HashMap' resultType='java.util.Map'>
+        SELECT
+        	board_id				BOARD_ID
+        	, board_name			BOARD_NAME
+        	, board_type			BOARD_TYPE
+        	, top_image				TOP_IMAGE
+        	, top_comment			TOP_COMMENT
+        	, attach_flag			ATTACH_FLAG 
+			, reply_flag			REPLY_FLAG 
+			, list_count			LIST_COUNT 
+			, expire_flag 			EXPIRE_FLAG
+			, made_date 			MADE_DATE
+			, made_ip 				MADE_IP
+			, disabled_flag 		DISABLED_FLAG
+			, news_flag 			NEW_FLAG
+			, board_title 			BOARD_TITLE
+			, ch_title1 			CH_TITLE1
+			, ch_title2 			CH_TITLE2
+			, ch_title3 			CH_TITLE3
+			, ch_title4 			CH_TITLE4
+			, ch_type1 				CH_TYPE1
+			, ch_type2 				CH_TYPE2
+			, ch_type3 				CH_TYPE3
+			, ch_type4 				CH_TYPE4
+			, ch_yn1 				CH_YN1
+			, ch_yn2 				CH_YN2
+			, ch_yn3 				CH_YN3
+			, ch_yn4 				CH_YN4
+			, ch_option1 			CH_OPTION1
+			, ch_option2 			CH_OPTION2
+			, ch_option3 			CH_OPTION3
+			, ch_option4 			CH_OPTION4
+			, ch_search1 			CH_SEARCH1
+			, ch_search2 			CH_SEARCH2
+			, ch_search3 			CH_SEARCH3
+			, ch_search4 			CH_SEARCH4
+			, ch_location1 			CH_LOCATION1
+			, ch_location2 			CH_LOCATION2
+			, ch_location3 			CH_LOCATION3
+			, ch_location4 			CH_LOCATION4
+        FROM
+        	board_admin
+        WHERE
+        	board_id = #{BOARD_ID}
+    </select>
+    
+    <!-- 게시판 게시물 전체 갯수 가져 오기 -->
+    <select id='selectOneBoardListTotalCnt' parameterType='java.util.HashMap' resultType='long'>
+        SELECT
+        	COUNT(*)								TOTAL_CNT
+        FROM
+			    wb_board
+        WHERE
+        	brd_id = #{BOARD_ID}
+        	AND write_no IS NOT NULL  
+        	<if test='SEARCH_METHOD == "TITLE"'>
+        	    AND title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "CONTENT"'>
+        	    AND content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "TITLE_CONTENT"'>
+        	    AND 
+        	    (
+        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR 
+        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    )
+        	</if>
+        	<if test='SEARCH_METHOD == "SAVE_FILE_NAME"'>
+        	    AND save_file_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "USER_NAME"'>
+        	    AND user_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "ALL"'>
+        	    AND 
+        	    (
+        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR 
+        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR
+        	    save_file_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR
+        	    user_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    )
+        	</if>
+    </select>
+    
+    <!-- 게시판 리스트 가져 오기 -->
+    <select id='selectBoardList' parameterType='java.util.HashMap' resultType='java.util.Map'>
+        SELECT
+        	ROWNUM										NUM
+        	,T.write_no									WRITE_NO
+        	,T.parent_no								PARENT_NO
+        	,T.re_level									RE_LEVEL
+        	,T.re_step									RE_STEP        	
+        	,T.title									TITLE
+        	,T.content									CONTENT
+        	,T.user_name								USER_NAME
+        	,TO_CHAR(T.write_date, 'yyyy-mm-dd hh')		WRITE_DATE
+        	,T.view_count								VIEW_COUNT
+        FROM
+        (
+	        SELECT
+	        	write_no
+	        	,parent_no
+	        	,re_level
+	        	,re_step        	
+	        	,title
+	        	,content
+	        	,user_name
+	        	,write_date
+	        	,view_count
+	        FROM
+	        	wb_board
+	        WHERE
+	        	brd_id = #{BOARD_ID}
+	        	AND write_no IS NOT NULL
+	        	<if test='SEARCH_METHOD == "TITLE"'>
+	        	    AND title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "CONTENT"'>
+	        	    AND content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "TITLE_CONTENT"'>
+	        	    AND 
+	        	    (
+	        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR 
+	        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    )
+	        	</if>
+	        	<if test='SEARCH_METHOD == "SAVE_FILE_NAME"'>
+	        	    AND save_file_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "USER_NAME"'>
+	        	    AND user_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "ALL"'>
+	        	    AND 
+	        	    (
+	        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR 
+	        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR
+	        	    save_file_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR
+	        	    user_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    )
+	        	</if>
+	        ORDER BY
+	        	parent_no DESC
+	        	, re_step asc
+	        	, write_no ASC
+        ) T
+        WHERE
+        	ROWNUM BETWEEN #{FROM_NUM} AND #{TO_NUM}  
+    </select>
+    
+    <!-- 게시판 컨텐츠 조회 횟수 늘리기 -->
+    <update id='updateBoardViewCount' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_board 
+        SET
+        	view_count = view_count + 1
+        WHERE
+        	brd_id = #{BOARD_ID}
+        	AND write_no = #{WRITE_NO}
+    </update>
+    
+    <!-- 게시판 컨텐츠 가져 오기 -->
+    <select id='selectOneBoardContent' parameterType='java.util.HashMap' resultType='java.util.Map'>
+        SELECT
+        	write_no										WRITE_NO
+        	,re_level										RE_LEVEL
+        	,re_step										RE_STEP        	
+        	,title											TITLE
+        	,content										CONTENT
+        	,user_id										USER_ID
+        	,user_name										USER_NAME
+        	,TO_CHAR(write_date, 'yyyy-mm-dd hh:MM:ss')		WRITE_DATE
+        	,view_count										VIEW_COUNT
+        	,file_title										FILE_TITLE
+        	,save_file_name									SAVE_FILE_NAME
+        	,ww_code										WW_CODE
+        FROM
+        	wb_board
+        WHERE
+        	brd_id = #{BOARD_ID}
+        	AND write_no = #{WRITE_NO}
+        	AND parent_no = #{PARENT_NO}
+        	AND ROWNUM = 1  
+    </select>
+    
+    <!-- 게시물의 컨텐츠 삭제 -->
+    <delete id='deleteBoardContent' parameterType='java.util.HashMap'>
+        DELETE
+        FROM
+        	wb_board 
+        WHERE
+        	brd_id = #{BOARD_ID}
+        	AND write_no = #{WRITE_NO}
+        	AND parent_no = #{PARENT_NO}
+    </delete>
+    
+    <!-- 게시물의 신규 컨텐츠 추가 -->
+    <insert id='insertBoardContent' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_board(
+        		write_no
+        		, parent_no
+        		, re_level
+        		, re_step
+        		, user_id
+        		, user_name
+        		, write_date
+        		, title
+        		, view_count
+        		, expire_date
+        		, ip_address
+        		, update_date
+        		, file_title
+        		, save_file_name
+        		, content
+        		, ch_content1
+        		, ch_content2
+        		, ch_content3
+        		, ch_content4
+        		, brd_id
+        		, ww_code
+       		)
+        VALUES
+        	(
+        		(SELECT MAX(write_no) + 1 FROM wb_board)
+        		, (SELECT MAX(write_no) + 1 FROM wb_board)
+        		, 0
+        		, 0
+        		, #{USER_ID}
+        		, #{USER_NAME}
+        		, SYSDATETIME
+        		, #{TITLE}
+        		, 0
+        		, ''
+        		, #{IP_ADDRESS}
+        		, SYSDATETIME
+        		, #{FILE_TITLE}
+        		, #{SAVE_FILE_NAME}
+        		, #{CONTENT}
+        		, ''
+        		, ''
+        		, ''
+        		, ''
+        		, #{BOARD_ID}
+        		, #{WW_CODE}
+        	)
+    </insert>
+    
+    <!-- 게시물의 컨텐츠 수정 -->
+    <update id='updateBoardContent' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_board
+        SET
+        	user_id = #{USER_ID}
+        	, user_name = #{USER_NAME}
+        	, title = #{TITLE}
+        	, ip_address = #{IP_ADDRESS}
+        	, update_date = SYSDATETIME
+        	, file_title = #{FILE_TITLE}
+        	, save_file_name = #{SAVE_FILE_NAME}
+        	, content = #{CONTENT}
+        	, ww_code = #{WW_CODE}
+        WHERE
+        	brd_id = #{BOARD_ID}
+        	AND write_no = #{WRITE_NO}
+        	AND parent_no = #{PARENT_NO}
+    </update>
+    
+    <!-- 게시물의 컨테츠 reordering -->
+    <update id='updateBoardAnswerReorder' parameterType='java.util.HashMap'>
+        UPDATE
+			wb_board WA 
+		SET
+			WA.re_step = 
+			(
+				SELECT 
+					re_order
+				FROM
+				(
+					SELECT 
+						(ROWNUM - 1) * 2   re_order
+						, write_no 
+					FROM
+					(
+						SELECT
+							write_no
+						FROM
+							wb_board
+						WHERE
+							brd_id = #{BOARD_ID}
+							AND parent_no = #{PARENT_NO}
+						ORDER BY
+							parent_no DESC
+	       					, re_step ASC
+	       					, write_no ASC 
+	   				) T1
+	   			) T2
+	   			WHERE
+	   				WA.write_no = T2.write_no
+	   				AND ROWNUM = 1
+			)
+		WHERE
+			brd_id = #{BOARD_ID}
+			AND parent_no = #{PARENT_NO}
+    </update>
+    
+    <!-- 게시물의 답글 추가 -->
+    <insert id='insertBoardAnswerContent' parameterType='java.util.HashMap'>
+    	INSERT INTO
+        	wb_board(
+        		write_no
+        		, parent_no
+        		, re_level
+        		, re_step
+        		, user_id
+        		, user_name
+        		, write_date
+        		, title
+        		, view_count
+        		, expire_date
+        		, ip_address
+        		, update_date
+        		, file_title
+        		, save_file_name
+        		, content
+        		, ch_content1
+        		, ch_content2
+        		, ch_content3
+        		, ch_content4
+        		, brd_id
+        		, ww_code
+       		)
+        VALUES
+        	(
+        		(SELECT MAX(write_no) + 1 FROM wb_board)
+        		, #{PARENT_NO}
+        		, #{RE_LEVEL} + 1
+        		, 
+        		(
+        			SELECT 
+						MAX(re_step) + 1
+					FROM 
+						wb_board
+					WHERE 
+						brd_id = #{BOARD_ID}
+						AND parent_no = #{PARENT_NO}
+						AND  
+							re_step &gt;= ( SELECT re_step FROM wb_board WHERE brd_id = #{BOARD_ID} AND write_no = #{WRITE_NO} AND ROWNUM = 1 )
+							AND
+							re_step &lt; NVL(
+								( 
+									SELECT 
+										T1.re_step
+									FROM
+									(
+										SELECT 
+											re_step
+										FROM
+											wb_board
+										WHERE 
+											brd_id = #{BOARD_ID}
+											AND parent_no = #{PARENT_NO}
+											AND re_level &lt; #{RE_LEVEL} + 1
+											AND re_step &gt; (SELECT re_step FROM wb_board WHERE brd_id = #{BOARD_ID} AND write_no = #{WRITE_NO} AND ROWNUM = 1)
+										ORDER BY
+											re_step
+									) T1
+									WHERE 
+										ROWNUM = 1
+								)
+								, (SELECT MAX(re_step) FROM wb_board WHERE brd_id = #{BOARD_ID} AND parent_no = #{PARENT_NO}) + 1
+							)
+        		)
+        		, #{USER_ID}
+        		, #{USER_NAME}
+        		, SYSDATETIME
+        		, #{TITLE}
+        		, 0
+        		, ''
+        		, #{IP_ADDRESS}
+        		, SYSDATETIME
+        		, #{FILE_TITLE}
+        		, #{SAVE_FILE_NAME}
+        		, #{CONTENT}
+        		, ''
+        		, ''
+        		, ''
+        		, ''
+        		, #{BOARD_ID}
+        		, #{WW_CODE}
+        	)    
+    </insert>
+    
+    
+    <!-- 게시판 게시물 전체 갯수 가져 오기 - OpenBoard-->
+    <select id='selectOneOpenBoardListTotalCnt' parameterType='java.util.HashMap' resultType='long'>
+        SELECT
+        	COUNT(*)								TOTAL_CNT
+        FROM
+        	brd_${BOARD_ID}
+        WHERE
+        	write_no IS NOT NULL  
+        	<if test='SEARCH_METHOD == "TITLE"'>
+        	    AND title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "CONTENT"'>
+        	    AND content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	</if>
+        	<if test='SEARCH_METHOD == "TITLE_CONTENT"'>
+        	    AND 
+        	    (
+        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR 
+        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    )
+        	</if>
+        	<if test='SEARCH_METHOD == "ALL"'>
+        	    AND 
+        	    (
+        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    OR 
+        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+        	    )
+        	</if>
+    </select>
+    
+    <!-- 게시판 리스트 가져 오기 - OpenBoard -->
+    <select id='selectOpenBoardList' parameterType='java.util.HashMap' resultType='java.util.Map'>
+        SELECT
+        	ROWNUM										NUM
+        	,T.write_no									WRITE_NO
+        	,T.title									TITLE
+        	,T.content									CONTENT
+        	,T.user_name								USER_NAME
+        	,T.write_date								WRITE_DATE
+        	,T.view_count								VIEW_COUNT
+        FROM
+        (
+	        SELECT
+	        	write_no
+	        	,title
+	        	,content
+	        	,user_name
+	        	,write_date
+	        	,view_count
+	        FROM
+	        	brd_${BOARD_ID}
+	        WHERE
+	        	write_no IS NOT NULL
+	        	<if test='SEARCH_METHOD == "TITLE"'>
+	        	    AND title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "CONTENT"'>
+	        	    AND content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	</if>
+	        	<if test='SEARCH_METHOD == "TITLE_CONTENT"'>
+	        	    AND 
+	        	    (
+	        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR 
+	        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    )
+	        	</if>
+	        	<if test='SEARCH_METHOD == "ALL"'>
+	        	    AND 
+	        	    (
+	        	    title LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    OR 
+	        	    content LIKE '%' + #{SEARCH_KEYWORD} + '%'
+	        	    )
+	        	</if>
+	        ORDER BY
+	        	write_no DESC
+        ) T
+        WHERE
+        	ROWNUM BETWEEN #{FROM_NUM} AND #{TO_NUM}  
+    </select>
+    
+    <!-- 게시판 컨텐츠 조회 횟수 늘리기 - OpenBoard -->
+    <update id='updateOpenBoardViewCount' parameterType='java.util.HashMap'>
+        UPDATE
+        	brd_${BOARD_ID} 
+        SET
+        	view_count = view_count + 1
+        WHERE
+        	write_no = #{WRITE_NO}
+    </update>
+    
+    <!-- 게시판 컨텐츠 가져 오기 - OpenBoard -->
+    <select id='selectOneOpenBoardContent' parameterType='java.util.HashMap' resultType='java.util.Map'>
+        SELECT
+        	write_no										WRITE_NO
+        	,title											TITLE
+        	,content										CONTENT
+        	,user_id										USER_ID
+        	,user_name										USER_NAME
+        	,write_date										WRITE_DATE
+        	,view_count										VIEW_COUNT
+        	,expire_date									EXPIRE_DATe
+        FROM
+        	brd_${BOARD_ID} 
+        WHERE
+        	write_no = #{WRITE_NO}
+        	AND ROWNUM = 1  
+    </select>
+    
+    <!-- 게시물의 컨텐츠 삭제 - OpenBoard -->
+    <delete id='deleteOpenBoardContent' parameterType='java.util.HashMap'>
+        DELETE
+        FROM
+        	brd_${BOARD_ID}  
+        WHERE
+        	write_no = #{WRITE_NO}
+    </delete>
+    
+    <!-- 게시물의 신규 컨텐츠 추가 - OpenBoard -->
+    <insert id='insertOpenBoardContent' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	brd_${BOARD_ID} (
+        		write_no
+        		, user_id
+        		, user_name
+        		, write_date
+        		, title
+        		, content
+        		, view_count
+        		, expire_date
+        		, ip_address
+        		, update_date
+       		)
+        VALUES
+        	(
+        		(SELECT MAX(write_no) + 1 FROM wb_board)
+        		, #{USER_ID}
+        		, #{USER_NAME}
+        		, TO_CHAR(SYSDATETIME, 'yyyy-mm-dd')
+        		, #{TITLE}
+        		, #{CONTENT}
+        		, 0
+        		, #{EXPIRE_DATE}
+        		, #{IP_ADDRESS}
+        		, TO_CHAR(SYSDATETIME, 'yyyy-mm-dd')
+        	)
+    </insert>
+    
+    <!-- 게시물의 컨텐츠 수정 - OpenBoard -->
+    <update id='updateOpenBoardContent' parameterType='java.util.HashMap'>
+        UPDATE
+        	brd_${BOARD_ID} 
+        SET
+        	user_id = #{USER_ID}
+        	, user_name = #{USER_NAME}
+        	, title = #{TITLE}
+        	, ip_address = #{IP_ADDRESS}
+        	, update_date = TO_CHAR(SYSDATETIME, 'yyyy-mm-dd')
+        	, content = #{CONTENT}
+        	, expire_date = #{EXPIRE_DATE}
+        WHERE
+        	write_no = #{WRITE_NO}
+    </update>
+</mapper>

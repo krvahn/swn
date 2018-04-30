@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC 
+	'-//Apache Software Foundation//DTD Struts Configuration 2.3//EN' 
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <constant name="struts.devMode" value="false"/>
+    <constant name="struts.enable.DynamicMethodInvocation" value="true"/>
+    <constant name="struts.action.extension" value="action,do"/>
+    
+    <package name="default" extends="struts-default">
+        <!-- 자바스크립트 출력 action -->
+        <action name="script" class="kr.go.seoul.water.action.script.ScriptAction"/>
+        
+        <!-- 로그인 action -->
+        <action name="login" class="kr.go.seoul.water.action.json.LoginJsonAction"/>
+        
+        <!-- 코드 출력 action -->
+        <action name="code.list" class="kr.go.seoul.water.action.json.CodeListJsonAction"/>
+        
+        <!-- 데이터 출력 action -->
+        <action name="real.page" class="kr.go.seoul.water.action.json.PageRealJsonAction"/>
+        <action name="history.page" class="kr.go.seoul.water.action.json.PageHistoryJsonAction"/>
+        <action name="manual_search_day.page" class="kr.go.seoul.water.action.json.PageManualSearchDayJsonAction"/>
+        <action name="manual_search_etc.page" class="kr.go.seoul.water.action.json.PageManualSearchEtcJsonAction"/>
+        <action name="manual_value.page" class="kr.go.seoul.water.action.json.PageManualValueJsonAction"/>
+        <action name="manual_item.page" class="kr.go.seoul.water.action.json.PageManualItemJsonAction"/>
+        <action name="system.page" class="kr.go.seoul.water.action.json.PageSystemJsonAction"/>
+        <action name="oper.page" class="kr.go.seoul.water.action.json.PageOperJsonAction"/>
+        
+        <!-- 페이지 출력 action -->
+        <action name="lab_measure_value_plant_form" class="kr.go.seoul.water.action.page.PageLabMeasureValuePlantForm">
+            <result name="list">/page_manual/lab_measure_value_plant_form.jsp</result>
+        </action>
+        <action name="lab_measure_value_inout_result_form" class="kr.go.seoul.water.action.page.PageLabMeasureValueInOutResultForm">
+            <result name="list">/page_manual/lab_measure_value_inout_result_form.jsp</result>
+        </action>
+        <action name="lab_measure_value_baseline_form" class="kr.go.seoul.water.action.page.PageLabMeasureValueBaselineForm">
+            <result name="list">/page_manual/lab_measure_value_baseline_form.jsp</result>
+        </action>
+        <action name="lab_measure_value_power_form" class="kr.go.seoul.water.action.page.PageLabMeasureValuePowerForm">
+            <result name="list">/page_manual/lab_measure_value_power_form.jsp</result>
+        </action>
+        <action name="lab_measure_value_water_form" class="kr.go.seoul.water.action.page.PageLabMeasureValueWaterForm">
+            <result name="list">/page_manual/lab_measure_value_water_form.jsp</result>
+        </action>
+        
+        <action name="lab_measure_item_form" class="kr.go.seoul.water.action.page.PageLabMeasureItemForm">
+            <result name="list" type="redirect">/page_manual/lab_measure_item.jsp</result>            
+            <result name="view">/page_manual/lab_measure_item_form.jsp</result>
+        </action>
+        
+        <action name="group_manager_form" class="kr.go.seoul.water.action.page.PageGroupManagerForm">
+            <result name="list" type="redirect">/page_system/group_manager_list.jsp</result>            
+            <result name="view">/page_system/group_manager_form.jsp</result>
+        </action>
+        <action name="user_manager_form" class="kr.go.seoul.water.action.page.PageUserManagerForm">
+            <result name="list" type="redirect">/page_system/user_manager_list.jsp</result>            
+            <result name="view">/page_system/user_manager_form.jsp</result>
+        </action>
+        <action name="water_manager_form" class="kr.go.seoul.water.action.page.PageWaterManagerForm">
+            <result name="list" type="redirect">/page_system/water_manager_list.jsp</result>            
+            <result name="view">/page_system/water_manager_form.jsp</result>
+        </action>
+        
+        <action name="point_office_form" class="kr.go.seoul.water.action.page.PagePointOfficeForm">
+            <result name="list" type="redirect">/page_system/point_office_list.jsp</result>            
+            <result name="view">/page_system/point_office_form.jsp</result>
+        </action>
+        
+        <action name="measure_item_form" class="kr.go.seoul.water.action.page.PageMeasureItemForm">
+            <result name="input">/page_system/measure_item_form.jsp</result>
+            <result name="list" type="redirect">/page_system/measure_item_list.jsp</result>            
+            <result name="view">/page_system/measure_item_form.jsp</result>
+        </action>
+        
+        <action name="status_sub_form" class="kr.go.seoul.water.action.page.PageStatusSubForm">
+            <result name="list" type="redirect">/page_system/status_sub_list.jsp</result>            
+            <result name="view">/page_system/status_sub_form.jsp</result>
+        </action>
+        <action name="status_top_form" class="kr.go.seoul.water.action.page.PageStatusTopForm">
+            <result name="list" type="redirect">/page_system/status_top_list.jsp</result>            
+            <result name="view">/page_system/status_top_form.jsp</result>
+        </action>
+        <action name="oper_result_form" class="kr.go.seoul.water.action.page.PageOperResultForm">
+            <result name="list">/page_oper/oper_result_form.jsp</result>
+        </action>
+    </package>
+</struts>

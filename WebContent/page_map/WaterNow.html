@@ -1,0 +1,979 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+<title>Seoul Water Now 4.0</title>
+</head>
+<!-- 자바스크립트 포함(AJAX) -->
+<script src="jquery.js" type="text/javascript" language="javascript"></script>
+<!-- 자바스크립트 포함(PNG투명화 작업) -->
+<script language="javascript">
+<!--
+    function setPng24(obj) 
+	{
+        obj.width=obj.height=1;
+        obj.className=obj.className.replace(/\bpng24\b/i,'');
+        obj.style.filter =
+        "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='"+ obj.src +"',sizingMethod='image');"
+        obj.src=''; 
+        return '';
+    }
+//-->
+</script>
+<!-- 스타일 정의 -->
+<style type="text/css">
+<!--
+/*********************************************************
+ * 공통 스타일
+ *********************************************************/
+body 
+{
+	background-image: url(images/bg_mapall.jpg);
+	background-repeat: no-repeat;
+	margin: 0px;
+	padding: 0px;
+	font-family: "돋움", "돋움체", Arial;
+	font-size: 11px;
+}
+
+img 
+{
+	border: 0px;
+}
+.infotit 
+{
+	font-size: 12px;
+	font-weight:bold;
+	color:#FFFFFF;
+}
+
+.txt12 
+{
+	font-size: 12px;
+}
+
+.png24
+{
+	tmp:expression(setPng24(this));
+}
+
+/*********************************************************
+ * 지도 관련 스타일
+ *********************************************************/
+#map {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:61;
+	visibility: hidden;
+	zoom:1
+}
+
+.map_01 { background:url('images/map_01z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_01z.png', sizingMethod='image'); }
+.map_02 { background:url('images/map_02z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_02z.png', sizingMethod='image'); }
+.map_03 { background:url('images/map_03z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_03z.png', sizingMethod='image'); }
+.map_04 { background:url('images/map_04z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_04z.png', sizingMethod='image'); }
+.map_05 { background:url('images/map_05z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_05z.png', sizingMethod='image'); }
+.map_06 { background:url('images/map_06z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_06z.png', sizingMethod='image'); }
+.map_07 { background:url('images/map_07z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_07z.png', sizingMethod='image'); }
+.map_08 { background:url('images/map_08z.png'); _background:none; _filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_08z.png', sizingMethod='image'); }
+
+#map_scroll
+{
+	position:relative; top:0px; left:0px; width:100%; height:596px; overflow-x:none; overflow-y:scroll; border:1px solid; border:#CCCCCC; 
+	padding-top:0px; padding-left:0px; padding-right:0px;
+	scrollbar-3dlight-color:#d9d9d9; scrollbar-arrow-color:#ffffff; scrollbar-track-color:#dddddd; scrollbar-darkshadow-color:#ffffff; scrollbar-face-color:#000099; scrollbar-highlight-color:#ffffff; scrollbar-shadow-color:#ffffff;
+	z-index:62;
+}
+#water_young {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:16;
+	visibility: hidden;
+}
+#water_am {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:15;
+	visibility: hidden;
+}
+#water_kwa {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:14;
+	visibility: hidden;
+}
+#water_ddu {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:13;
+	visibility: hidden;
+}
+#water_gu {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:12;
+	visibility: hidden;
+}
+#water_rn {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:11;
+	visibility: hidden;
+}
+#water0 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:10;
+}
+#map0 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:0;
+}
+#posi1 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:21;
+}
+#posi2 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:22;
+}
+#posi3 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:23;
+}
+#posi4 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:24;
+}
+#posi5 {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:25;
+}
+#imagemap {
+	position:absolute;
+	left:0;
+	top:0;
+	width:1268px;
+	height:972px;
+	z-index:30;
+	visibility: visible;
+}
+#info_t {
+	position:absolute;
+	left:1279px;
+	top:25px;
+	width:287px;
+	height:232px;
+	z-index:42;
+	visibility: hidden;
+}
+#info_b {
+	position:absolute;
+	left:359px;
+	top:329px;
+	width:287px;
+	height:232px;
+	z-index:41;
+	visibility: hidden;
+}
+#menu {
+	position:absolute;
+	left:0px;
+	top:879px;
+	width:1268px;
+	height:93px;
+	z-index:100;
+}
+-->
+</style>
+
+<!--  자바스크립트 정의 -->
+<script type="text/javascript">
+<!--
+var gType = 0; // 0: 전체 보기, 1: 취수장, 2:정수센터, 3:배수지, 4:가압장, 5:수도꼭지
+/*
+var gPointURL = "http://218.236.24.50:7000/swq/map/readPoint.jsp";
+var gAreaURL = "http://218.236.24.50:7000/swq/map/readArea.jsp";
+*/
+var gPointURL = "./readPoint.jsp";
+var gAreaURL = "./readArea.jsp";
+
+function MM_showHideLayers() { //v9.0
+  var i,p,v,obj,args=MM_showHideLayers.arguments;
+  for (i=0; i<(args.length-2); i+=3) 
+  with (document) if (getElementById && ((obj=getElementById(args[i]))!=null)) { v=args[i+2];
+    if (obj.style) { obj=obj.style; v=(v=='show')?'visible':(v=='hide')?'hidden':v; }
+    obj.visibility=v; }
+}
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+function MM_preloadImages() { //v3.0
+	 var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+ 	 var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+
+// 이미지 읽어 오는 함수
+function preLoadImage()
+{
+	MM_preloadImages('images/map_01.png','images/map_05.png','images/map_02.png','images/map_03.png','images/map_04.png','images/map_06.png','images/map_07.png','images/map_08.png','images/map_all.png');
+}
+
+/*
+ * 메뉴 관련 함수
+ */
+function fnInitReLoad()
+{
+	document.location = "WaterNow.html";
+}
+
+/*
+ * 타입 선택 함수
+ */
+ 
+ // 취수장
+ function fnType01()
+ {
+	 gType = 1;
+	 
+	// 수도사업소별 팝업 없애기
+	 MM_showHideLayers('map','','hide');
+	 
+	// 포인트별 팝업 없애기
+	 MM_showHideLayers('info_t','','hide');
+	 
+	 // 물길 흐름 없애기
+	 MM_showHideLayers("water0", '', 'hide', 'water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	 
+	 // 해당 타입만 지도에 표시
+	 MM_showHideLayers('posi1','','show','posi2','','hide','posi3','','hide','posi4','','hide','posi5','','hide');
+ }
+ 
+//정수센터
+ function fnType02()
+ {
+	 gType = 2;
+	 
+	// 수도사업소별 팝업 없애기
+	 MM_showHideLayers('map','','hide');
+	 
+	// 포인트별 팝업 없애기
+	 MM_showHideLayers('info_t','','hide');
+	 
+	// 물길 흐름 없애기
+	 MM_showHideLayers("water0", '', 'hide', 'water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	 
+	 // 해당 타입만 지도에 표시
+	 MM_showHideLayers('posi1','','hide','posi2','','show','posi3','','hide','posi4','','hide','posi5','','hide');
+ }
+ 
+//배수지
+ function fnType03()
+ {
+	 gType = 3;
+	 
+	// 수도사업소별 팝업 없애기
+	 MM_showHideLayers('map','','hide');
+	 
+	// 포인트별 팝업 없애기
+	 MM_showHideLayers('info_t','','hide');
+	 
+	// 물길 흐름 없애기
+	 MM_showHideLayers("water0", '', 'hide', 'water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	 
+	 // 해당 타입만 지도에 표시
+	 MM_showHideLayers('posi1','','hide','posi2','','hide','posi3','','show','posi4','','hide','posi5','','hide');
+ }
+ 
+//가압장
+ function fnType04()
+ {	
+	 gType = 4;
+	 
+	// 수도사업소별 팝업 없애기
+	 MM_showHideLayers('map','','hide');
+	 
+	// 포인트별 팝업 없애기
+	 MM_showHideLayers('info_t','','hide');
+	 
+	// 물길 흐름 없애기
+	 MM_showHideLayers("water0", '', 'hide', 'water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	 
+	 // 해당 타입만 지도에 표시
+	 MM_showHideLayers('posi1','','hide','posi2','','hide','posi3','','hide','posi4','','show','posi5','','hide');
+ }
+ 
+//수도꼭지
+ function fnType05()
+ {	
+	 gType = 5;
+	 
+	 // 수도사업소별 팝업 없애기
+	 MM_showHideLayers('map','','hide');
+	 
+	 // 포인트별 팝업 없애기
+	 MM_showHideLayers('info_t','','hide');
+	 
+	// 물길 흐름 없애기
+	 MM_showHideLayers("water0", '', 'hide', 'water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	 
+	 // 해당 타입만 지도에 표시
+	 MM_showHideLayers('posi1','','hide','posi2','','hide','posi3','','hide','posi4','','hide','posi5','','show');
+ }
+
+/*
+ * 지역 선택 함수
+ */
+ 
+//중부
+function fnAreaJung()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0001");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_01";
+	//map.style.background='url(images/map_01z.png)';	
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_01z.png', sizingMethod='image')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//서부
+function fnAreaSeo()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0006");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_02";
+	//map.style.background='url(images/map_02z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_02z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//동부
+function fnAreaDong()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0003");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_03";
+	//map.style.background='url(images/map_03z.png)';
+	//map.style.filter = ":progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_03z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//북부
+function fnAreaBook()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0005");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_04";
+	//map.style.background='url(images/map_04z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_04z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//강서
+function fnAreaKangSeo()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0007");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_05";
+	//map.style.background='url(images/map_05z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_05z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//남부
+function fnAreaNam()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0009");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_06";
+	//map.style.background='url(images/map_06z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_06z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//강남
+function fnAreaKangNam()
+{
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0010");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_07";
+	//map.style.background='url(images/map_07z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_07z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+
+//강동
+function fnAreaKangDong()
+{	
+	var strResData;
+	
+	// 데이터 가져 오기
+	strResData = fnReadArea("WW0011");
+	if( strResData != "" )
+	{
+		map.innerHTML = strResData;
+	}
+	
+	// 출력 이미지 선택
+	map.className = "map_08";
+	//map.style.background='url(images/map_08z.png)';
+	//map.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='images/map_08z.png', sizingMethod='crop')";
+	
+	// 화면창 출력
+	MM_showHideLayers('map','','show');
+}
+ 
+/*
+ * 물흐름 출력 함수
+ */
+
+//영등포
+function fnWaterRoadYoung()
+{	
+	var obj;
+	obj = document.getElementById('water_young');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','show','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	}
+}
+
+//암사
+function fnWaterRoadAm()
+{
+	var obj;
+	obj = document.getElementById('water_am');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','hide','water_am','','show','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	}
+}
+
+//광암
+function fnWaterRoadKwa()
+{	
+	var obj;
+	obj = document.getElementById('water_kwa');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','show','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	}
+}
+
+//뚝도
+function fnWaterRoadDdu()
+{
+	var obj;
+	obj = document.getElementById('water_ddu');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','show','water_gu','','hide','water_rn','','hide');
+	}
+}
+
+//구의
+function fnWaterRoadGu()
+{
+	var obj;
+	obj = document.getElementById('water_gu');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','show','water_rn','','hide');
+	}
+}
+
+//강북
+function fnWaterRoadRn()
+{
+	var obj;
+	obj = document.getElementById('water_rn');
+	
+	if( obj.style.visibility == 'visible' )
+	{
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','hide');
+	} else {
+		MM_showHideLayers('water_young','','hide','water_am','','hide','water_kwa','','hide','water_ddu','','hide','water_gu','','hide','water_rn','','show');
+	}
+}
+
+// 지역 클리시 세부 내용 표현
+function fnReadArea(code)
+{
+	// 데이터 가져 오기
+	var strResData = "";
+    var strReqUrl;    
+    strReqUrl = gAreaURL + "?code=" + code;
+	
+	jQuery.ajax({
+		type: "GET",
+		url: strReqUrl,
+		async: false,
+		dataType: "html",
+		success: function(htmlData) {
+			strResData = htmlData;
+		},
+		error: function(qXHR, textStatus, errorThrown) {
+			var str;
+			
+			str = strReqUrl + "\n\n";
+			str += "Error cause : "+ qXHR.statusText;
+			alert(str);
+		}
+	});
+	
+	return strResData;
+}
+
+
+// 심볼 클릭시 세부 내용 표현
+function fnShowDetail(type, code)
+{	
+	var iPosX, iPosY;
+	var iDirect = 0;	
+	
+	// 현재 보여주고 있는 내용이 아니면 리턴
+	if( gType != 0 )
+	{
+		if( type != gType )
+		{
+			return;	
+		}
+	}
+
+	// 마우스 클릭 위치 구하기
+	iPosX = window.event.clientX + document.body.scrollLeft;
+	iPosY = window.event.clientY + document.body.scrollTop;
+	
+	
+	// 출력 위치 선정
+	if( iPosY > 500 )
+	{
+		iPosY -= 232;
+		iDirect = 1;
+	}
+	
+	// 데이터 가져 오기
+    var strReqUrl;    
+    strReqUrl = gPointURL + "?code=" + code + "&direct=" + iDirect;
+	
+	jQuery.ajax({
+		type: "GET",
+		url: strReqUrl,
+		async: false,
+		dataType: "html",
+		success: function(htmlData) {
+			info_t.innerHTML = htmlData;
+		},
+		error: function(qXHR, textStatus, errorThrown) {
+			var str;
+			
+			str = strReqUrl + "\n\n";
+			str += "Error cause : "+ qXHR.statusText;
+			alert(str);
+		}
+	});
+	
+	// 위치 변경 및 출력
+	$("#info_t").css("left", iPosX - 143);
+	$("#info_t").css("top", iPosY);
+
+	// 화면창 출력
+	MM_showHideLayers('info_t','','show');
+}
+
+/*
+ * 객체 얻기 함수
+ */
+ function getInstance()
+ {
+ 	var httpXmlObj;
+ 	try	{
+ 		httpXmlObj = new ActiveXObject("Msxml2.XMLHTTP");
+ 	} catch(Ex) {
+ 		try {
+ 			httpXmlObj = new ActiveXObject("Microsoft.XMLHTTP");
+ 		} catch (Ex2) {
+           httpXmlObj = null;
+ 		}
+ 	}
+ 	return httpXmlObj;
+ }
+//-->
+</script>
+
+<body onload="preLoadImage();">
+<div id="map0"><img src="images/map_all.png" alt="전체맵" name="map_all" width="1268" height="972" class="png24"></div>
+<div id="water_young"><img src="images/water_young.gif" alt="물길-영등포" width="1268" height="972" /></div>
+<div id="water_am"><img src="images/water_am.gif" alt="물길-암사" width="1268" height="972" /></div>
+<div id="water_kwa"><img src="images/water_kwa.gif" alt="물길-광암" width="1268" height="972" /></div>
+<div id="water_ddu"><img src="images/water_ddu.gif" alt="물길-뚝도" width="1268" height="972" /></div>
+<div id="water_gu"><img src="images/water_gu.gif" alt="물길-구의" width="1268" height="972" /></div>
+<div id="water_rn"><img src="images/water_rn.gif" alt="물길-강북" width="1268" height="972" /></div>
+<div id="water0"><img src="images/water_all.png" alt="전체물길" width="1268" height="972"  class="png24"/></div>
+<div id="posi1"><img src="images/position01.png" alt="취수장" width="1268" height="972" class="png24"/></div>
+<div id="posi2"><img src="images/position02.png" alt="정수장" width="1268" height="972" class="png24"/></div>
+<div id="posi3"><img src="images/position03.png" alt="배수지" width="1268" height="972" class="png24"/></div>
+<div id="posi4"><img src="images/position04.png" alt="가압장" width="1268" height="972" class="png24"/></div>
+<div id="posi5"><img src="images/position05.png" alt="수도꼭지" width="1268" height="972" class="png24"/></div>
+<div id="map"></div>
+<div id="imagemap">
+<img src="images/trans_clos.gif" alt="" width="1268" height="972" border="0" usemap="#Map" onmouseover="MM_swapImage('map_all','','images/map_all.png',1)" onmouseout="MM_swapImgRestore()" />
+<map name="Map" id="Map">
+	<!-- 중부 -->
+	<area shape="circle" coords="635,464,8" href="#" alt="수도-장충" onclick="fnShowDetail(5, '100');"/>
+	<area shape="circle" coords="640,389,8" href="#" alt="가압-삼청" onclick="fnShowDetail(4, '101');"/>
+	<area shape="circle" coords="651,616,8" href="#" alt="배수-남산" onclick="fnShowDetail(3, '113');"/>
+	<area shape="circle" coords="611,597,8" href="#" alt="가압-보광" onclick="fnShowDetail(4, '114');"/>
+	<area shape="circle" coords="707,579,8" href="#" alt="배수-보광" onclick="fnShowDetail(3, '115');"/>
+	<area shape="circle" coords="724,399,8" href="#" alt="가압-종암" onclick="fnShowDetail(4, '130');"/>
+	<area shape="circle" coords="671,324,8" href="#" alt="가압-성북1" onclick="fnShowDetail(4, '131');"/>
+	<area shape="circle" coords="767,384,8" href="#" alt="배수-월곡대" onclick="fnShowDetail(3, '132');"/>
+	<area shape="circle" coords="798,349,8" href="#" alt="배수-월곡소" onclick="fnShowDetail(3, '133');"/>
+	<area shape="circle" coords="735,362,8" href="#" alt="수도-종암1" onclick="fnShowDetail(5, '102');"/>
+	<area shape="circle" coords="707,381,8" href="#" alt="수도-삼선2" onclick="fnShowDetail(5, '103');"/>	
+	<area shape="circle" coords="697,413,8" href="#" alt="수도-동숭" onclick="fnShowDetail(5, '104');"/>
+	<area shape="circle" coords="661,474,8" href="#" alt="수도-소공" onclick="fnShowDetail(5, '306');"/>
+	<area shape="circle" coords="671,276,8" href="#" alt="배수-정릉2" onclick="fnShowDetail(3, '401');"/>
+	<area shape="circle" coords="696,328,8" href="#" alt="배수-정릉3" onclick="fnShowDetail(3, '402');"/>
+	<area shape="circle" coords="671,360,8" href="#" alt="배수-성북2" onclick="fnShowDetail(3, '403');"/>
+	<area shape="circle" coords="718,423,8" href="#" alt="배수-낙산" onclick="fnShowDetail(3, '404');"/>
+  	<area shape="circle" coords="659,417,8" href="#" alt="가압-경내" onclick="fnShowDetail(4, '405');"/>
+  	<area shape="circle" coords="608,421,8" href="#" alt="배수-무악" onclick="fnShowDetail(3, '406');"/>
+  	<area shape="circle" coords="642,434,8" href="#" alt="수도-세종로" onclick="fnShowDetail(5, '407');"/>
+  	<area shape="circle" coords="676,560,8" href="#" alt="수도-서빙고" onclick="fnShowDetail(5, '408');"/>	
+	
+	<!-- 서부 -->
+	<area shape="circle" coords="531,516,8" href="#" alt="가압-만리" onclick="fnShowDetail(4, '110');"/>
+  	<area shape="circle" coords="573,534,8" href="#" alt="배수-만리" onclick="fnShowDetail(3, '111');"/>  	
+  	<area shape="circle" coords="425,464,8" href="#" alt="배수-와우산" onclick="fnShowDetail(3, '112');"/>
+  	<area shape="circle" coords="494,287,8" href="#" alt="배수-증산" onclick="fnShowDetail(3, '150');"/>
+  	<area shape="circle" coords="593,395,8" href="#" alt="배수-북악" onclick="fnShowDetail(3, '151');"/>
+  	<area shape="circle" coords="496,430,8" href="#" alt="가압-현행" onclick="fnShowDetail(4, '152');"/>
+  	<area shape="circle" coords="571,217,8" href="#" alt="배수-독박골" onclick="fnShowDetail(3, '153');"/>
+  	<area shape="circle" coords="557,275,8" href="#" alt="배수-불광" onclick="fnShowDetail(3, '155');"/>
+  	<area shape="circle" coords="525,289,8" href="#" alt="배수-삼우" onclick="fnShowDetail(3, '156');"/>
+  	<area shape="circle" coords="527,402,8" href="#" alt="배수-백련" onclick="fnShowDetail(3, '157');"/>  	
+  	<area shape="circle" coords="465,452,8" href="#" alt="수도-신수" onclick="fnShowDetail(5, '116');"/>
+  	<area shape="circle" coords="559,375,8" href="#" alt="수도-홍제4" onclick="fnShowDetail(5, '117');"/>  	
+  	<area shape="circle" coords="396,441,8" href="#" alt="수도-성산" onclick="fnShowDetail(5, '118');"/>
+  	<area shape="circle" coords="482,312,8" href="#" alt="수도-응암" onclick="fnShowDetail(5, '119');"/>
+  	<area shape="circle" coords="584,347,8" href="#" alt="수도-홍제1" onclick="fnShowDetail(5, '158');"/>
+  	<area shape="circle" coords="468,489,8" href="#" alt="수도-도화" onclick="fnShowDetail(5, '302');"/>  	
+  	<area shape="circle" coords="513,245,8" href="#" alt="배수-진관" onclick="fnShowDetail(3, '307');"/>
+  	<area shape="circle" coords="491,397,8" href="#" alt="배수-가좌" onclick="fnShowDetail(3, '409');"/>	
+  	<area shape="circle" coords="561,349,8" href="#" alt="배수-홍은" onclick="fnShowDetail(3, '410');"/>
+  	<area shape="circle" coords="591,370,8" href="#" alt="배수-홍제" onclick="fnShowDetail(3, '411');"/>
+  	<area shape="circle" coords="529,450,8" href="#" alt="배수-연희" onclick="fnShowDetail(3, '412');"/>
+  	<area shape="circle" coords="478,348,8" href="#" alt="배수-수색" onclick="fnShowDetail(3, '413');"/>
+  	<area shape="circle" coords="451,472,5" href="#" alt="배수-노고산" onclick="fnShowDetail(3, '414');"/>  
+	<area shape="circle" coords="510,362,5" href="#" alt="배수-남가좌2" onclick="fnShowDetail(3, '415');"/>  	
+	<area shape="circle" coords="541,230,8" href="#" alt="수도-진관" onclick="fnShowDetail(5, '416');"/>  	
+  	
+  	<!-- 동부 -->
+  	<area shape="circle" coords="716,513,8" href="#" alt="수도-행당1" onclick="fnShowDetail(5, '120');"/>
+  	<area shape="circle" coords="867,387,8" href="#" alt="배수-용마" onclick="fnShowDetail(3, '121');"/>
+  	<area shape="circle" coords="920,469,8" href="#" alt="배수-아차산" onclick="fnShowDetail(3, '122');"/>
+  	<area shape="circle" coords="748,473,8" href="#" alt="배수-대현산" onclick="fnShowDetail(3, '123');"/>
+  	<area shape="circle" coords="931,510,8" href="#" alt="수도-구의2" onclick="fnShowDetail(5, '124');"/>
+  	<area shape="circle" coords="779,524,8" href="#" alt="수도-성수1" onclick="fnShowDetail(5, '125');"/>  	
+  	<area shape="circle" coords="954,328,8" href="#" alt="수도-신내" onclick="fnShowDetail(5, '126');"/>
+  	<area shape="circle" coords="754,419,8" href="#" alt="수도-신설" onclick="fnShowDetail(5, '127');"/>
+  	<area shape="circle" coords="737,527,8" href="#" alt="수도-옥수2" onclick="fnShowDetail(5, '128');"/>
+  	<area shape="circle" coords="895,428,8" href="#" alt="배수-용마소" onclick="fnShowDetail(3, '417');"/>  
+  	<area shape="circle" coords="903,492,8" href="#" alt="배수-아차산소" onclick="fnShowDetail(3, '418');"/>
+  	<area shape="circle" coords="731,493,8" href="#" alt="배수-금호" onclick="fnShowDetail(3, '419');"/>
+  	<area shape="circle" coords="756,512,8" href="#" alt="배수-응봉" onclick="fnShowDetail(3, '420');"/>
+  	<area shape="circle" coords="824,399,8" href="#" alt="수도-전농" onclick="fnShowDetail(5, '421');"/>
+  	<area shape="circle" coords="843,458,8" href="#" alt="수도-장안3" onclick="fnShowDetail(5, '422');"/>  	
+  	<area shape="circle" coords="886,457,8" href="#" alt="수도-중곡4" onclick="fnShowDetail(5, '424');"/>
+	<area shape="circle" coords="910,404,8" href="#" alt="수도-면목" onclick="fnShowDetail(5, '423');"/>
+  	  	
+  	<!-- 북부 -->
+  	<area shape="circle" coords="852,171,8" href="#" alt="가압-상계" onclick="fnShowDetail(4, '140');"/>
+  	<area shape="circle" coords="864,284,8" href="#" alt="배수-공릉" onclick="fnShowDetail(3, '141');"/>  	
+  	<area shape="circle" coords="691,241,8" href="#" alt="가압-수유" onclick="fnShowDetail(5, '142');"/>
+  	<area shape="circle" coords="802,257,8" href="#" alt="배수-월계" onclick="fnShowDetail(3, '143');"/>
+  	<area shape="circle" coords="766,239,8" href="#" alt="수도-번2" onclick="fnShowDetail(5, '144');"/>
+  	<area shape="circle" coords="736,265,8" href="#" alt="수도-수유2" onclick="fnShowDetail(5, '145');"/>
+  	<area shape="circle" coords="822,273,8" href="#" alt="수도-월계4" onclick="fnShowDetail(5, '146');"/>
+  	<area shape="circle" coords="748,106,8" href="#" alt="수도-방학3" onclick="fnShowDetail(5, '147');"/>
+  	<!--<area shape="circle" coords="918,235,8" href="#" alt="수도-중계본" onclick="fnShowDetail(5, '303');"/>-->
+  	<area shape="circle" coords="892,198,8" href="#" alt="수도-상계3" onclick="fnShowDetail(5, '304');"/>
+  	<area shape="circle" coords="767,272,8" href="#" alt="배수-번동소" onclick="fnShowDetail(3, '425');"/>
+  	<area shape="circle" coords="706,227,8" href="#" alt="배수-419" onclick="fnShowDetail(3, '426');"/>
+  	<area shape="circle" coords="787,116,8" href="#" alt="수도-도봉1" onclick="fnShowDetail(5, '428');"/>
+  	<area shape="circle" coords="795,147,8" href="#" alt="수도-도봉2" onclick="fnShowDetail(5, '429');"/>
+  	
+	<!-- 강서 -->
+	<area shape="circle" coords="353,629,8" href="#" alt="배수-신정" onclick="fnShowDetail(3, '160');"/>
+	<area shape="circle" coords="376,594,8" href="#" alt="배수-목동" onclick="fnShowDetail(3, '161');"/>
+	<area shape="circle" coords="246,489,8" href="#" alt="배수-우장산" onclick="fnShowDetail(3, '162');"/>
+	<area shape="circle" coords="211,505,8" href="#" alt="배수-화곡" onclick="fnShowDetail(3, '163');"/>
+	<area shape="circle" coords="315,633,8" href="#" alt="배수-신월" onclick="fnShowDetail(3, '164');"/>		
+	<area shape="circle" coords="341,588,8" href="#" alt="수도-신정3" onclick="fnShowDetail(5, '165');"/>
+	<area shape="circle" coords="440,689,8" href="#" alt="수도-구로3" onclick="fnShowDetail(5, '166');"/>
+	<area shape="circle" coords="385,689,8" href="#" alt="수도-고척" onclick="fnShowDetail(5, '471');"/>
+	<area shape="circle" coords="285,439,8" href="#" alt="수도-방화3" onclick="fnShowDetail(5, '168');"/>
+	<area shape="circle" coords="419,703,8" href="#" alt="수도-구로6" onclick="fnShowDetail(5, '170');"/>
+	<area shape="circle" coords="361,688,8" href="#" alt="배수-오류2" onclick="fnShowDetail(3, '430');"/>
+	<area shape="circle" coords="343,678,8" href="#" alt="배수-개봉" onclick="fnShowDetail(3, '431');"/>
+	<area shape="circle" coords="390,499,8" href="#" alt="수도-등촌" onclick="fnShowDetail(5, '432');"/>
+	<area shape="circle" coords="303,565,8" href="#" alt="수도-신정6" onclick="fnShowDetail(5, '433');"/>
+	<!-- 수도-신정6동 -->
+	
+	<!-- 남부 -->
+	<area shape="circle" coords="460,667,8" href="#" alt="수도-영등포공원" onclick="fnShowDetail(5, '171');"/>
+	<area shape="circle" coords="483,745,8" href="#" alt="배수-독산" onclick="fnShowDetail(3, '172');"/>
+	<area shape="circle" coords="475,832,8" href="#" alt="가압-법원" onclick="fnShowDetail(4, '173');"/>
+	<area shape="circle" coords="463,793,8" href="#" alt="배수-금천" onclick="fnShowDetail(3, '174');"/>
+	<area shape="circle" coords="443,808,8" href="#" alt="배수-선우" onclick="fnShowDetail(3, '175');"/>
+	<area shape="circle" coords="500,687,8" href="#" alt="배수-대방" onclick="fnShowDetail(3, '180');"/>
+	<area shape="circle" coords="571,800,8" href="#" alt="배수-낙성대" onclick="fnShowDetail(3, '181');"/>
+	<area shape="circle" coords="541,639,8" href="#" alt="수도-신대방" onclick="fnShowDetail(5, '182');"/>
+	<area shape="circle" coords="567,630,8" href="#" alt="배수-노량진" onclick="fnShowDetail(3, '183');"/>
+	<area shape="circle" coords="530,678,8" href="#" alt="배수-상도" onclick="fnShowDetail(3, '184');"/>
+	<area shape="circle" coords="534,810,8" href="#" alt="배수-신림6" onclick="fnShowDetail(3, '185');"/>
+	<area shape="circle" coords="506,783,8" href="#" alt="배수-장군봉" onclick="fnShowDetail(3, '186');"/>
+	<area shape="circle" coords="626,692,8" href="#" alt="수도-사당5" onclick="fnShowDetail(5, '187');"/>
+	<area shape="circle" coords="591,724,8" href="#" alt="수도-봉천6" onclick="fnShowDetail(5, '188');"/>
+	<area shape="circle" coords="436,775,8" href="#" alt="수도-독산4" onclick="fnShowDetail(5, '189');"/>
+	<area shape="circle" coords="501,599,8" href="#" alt="수도-영등포경남A" onclick="fnShowDetail(5, '301');"/>
+	<area shape="circle" coords="527,762,8" href="#" alt="배수-신림2-1" onclick="fnShowDetail(3, '434');"/>
+  	<area shape="circle" coords="623,751,8" href="#" alt="배수-남현" onclick="fnShowDetail(3, '435');"/>
+  	<area shape="circle" coords="619,671,8" href="#" alt="배수-사당3" onclick="fnShowDetail(3, '436');"/>
+  	<area shape="circle" coords="636,710,8" href="#" alt="배수-사당4" onclick="fnShowDetail(3, '437');"/>  
+  	<area shape="circle" coords="613,713,8" href="#" alt="배수-봉천6-2" onclick="fnShowDetail(3, '438');"/>  
+  	<area shape="circle" coords="612,776,8" href="#" alt="배수-봉천11" onclick="fnShowDetail(3, '439');"/>  
+  	<area shape="circle" coords="569,737,8" href="#" alt="배수-봉현" onclick="fnShowDetail(3, '440');"/>
+  	<area shape="circle" coords="558,656,8" href="#" alt="배수-상도3" onclick="fnShowDetail(3, '441');"/>
+  	<area shape="circle" coords="487,805,8" href="#" alt="수도-시흥" onclick="fnShowDetail(5, '442');"/>
+	<area shape="circle" coords="568,675,8" href="#" alt="수도-신대방1" onclick="fnShowDetail(5, '443');"/>
+	<area shape="circle" coords="550,687,8" href="#" alt="수도-신대방2" onclick="fnShowDetail(5, '444');"/>
+	
+	<!-- 강남 -->
+	<area shape="circle" coords="740,764,8" href="#" alt="배수-서초" onclick="fnShowDetail(3, '190');"/>
+  	<area shape="circle" coords="669,687,8" href="#" alt="배수-방배" onclick="fnShowDetail(3, '191');"/>
+  	<area shape="circle" coords="916,749,8" href="#" alt="가압-일원" onclick="fnShowDetail(4, '192');"/>
+  	<area shape="circle" coords="725,732,8" href="#" alt="배수-우면산" onclick="fnShowDetail(3, '193');"/>
+  	<area shape="circle" coords="800,781,8" href="#" alt="수도-도곡2동" onclick="fnShowDetail(5, '194');"/>
+  	<area shape="circle" coords="771,619,8" href="#" alt="배수-청담" onclick="fnShowDetail(3, '195');"/>
+  	<area shape="circle" coords="673,764,8" href="#" alt="배수-반포" onclick="fnShowDetail(3, '196');"/>  	
+  	<area shape="circle" coords="793,845,8" href="#" alt="수도-양재" onclick="fnShowDetail(5, '197');"/>
+  	<area shape="circle" coords="894,712,8" href="#" alt="수도-삼성" onclick="fnShowDetail(5, '504');"/>
+  	<area shape="circle" coords="952,769,8" href="#" alt="수도-자곡" onclick="fnShowDetail(5, '503');"/>
+  	<area shape="circle" coords="672,738,8" href="#" alt="수도-반포1" onclick="fnShowDetail(5, '305');"/>
+  	<area shape="circle" coords="855,783,8" href="#" alt="배수-내곡" onclick="fnShowDetail(3, '445');"/>  	
+	<area shape="circle" coords="781,740,8" href="#" alt="수도-도곡1동" onclick="fnShowDetail(5, '446');"/>
+  	
+  	<!-- 강동 -->
+  	<area shape="circle" coords="955,665,8" href="#" alt="수도-성내"  onclick="fnShowDetail(5, '200');"/>
+  	<area shape="circle" coords="1005,692,8" href="#" alt="배수-오금" onclick="fnShowDetail(3, '201');"/>
+  	<area shape="circle" coords="1009,729,8" href="#" alt="가압-거마" onclick="fnShowDetail(4, '202');"/>
+  	<area shape="circle" coords="976,582,8" href="#" alt="수도-천호4" onclick="fnShowDetail(5, '203');"/>
+  	<area shape="circle" coords="1015,551,8" href="#" alt="배수-길동" onclick="fnShowDetail(3, '204');"/>  	
+  	<area shape="circle" coords="928,634,8" href="#" alt="수도-가락본" onclick="fnShowDetail(5, '205');"/>
+  	<area shape="circle" coords="961,725,8" href="#" alt="수도-문정" onclick="fnShowDetail(5, '498');"/>
+  	<area shape="circle" coords="902,644,8" href="#" alt="수도-삼전" onclick="fnShowDetail(5, '448');"/>  
+  	<area shape="circle" coords="1059,493,8" href="#" alt="수도-고덕" onclick="fnShowDetail(5, '449');"/>
+  	<area shape="circle" coords="1086,529,8" href="#" alt="수도-강일" onclick="fnShowDetail(5, '450');"/>	  
+  
+ 	<!-- 정수장 -->
+  	<area shape="circle" coords="1108,672,11" href="#" alt="정수-광암" onclick="fnWaterRoadKwa();" />
+  	<area shape="circle" coords="1029,304,11" href="#" alt="정수-강북" onclick="fnWaterRoadRn();" />
+  	<area shape="circle" coords="1032,472,11" href="#" alt="정수-암사" onclick="fnWaterRoadAm();" />
+  	<area shape="circle" coords="833,542,11" href="#" alt="정수-구의" onclick="fnWaterRoadGu();" />
+  	<area shape="circle" coords="719,545,11" href="#" alt="정수-뚝도" onclick="fnWaterRoadDdu();"/> 
+  	<area shape="circle" coords="503,566,11" href="#" alt="정수-영등포" onclick="fnWaterRoadYoung();" />
+  	
+  	<!-- 취수장 -->
+  	<area shape="circle" coords="1073,404,9" href="#" alt="취수-강북" onclick="fnShowDetail(1, '051');"/>
+  	<area shape="circle" coords="985,469,9" href="#" alt="취수-암사" onclick="fnShowDetail(1, '041');"/>
+  	<area shape="circle" coords="912,576,8" href="#" alt="취수-풍납" onclick="fnShowDetail(1, '035');"/>
+  	<area shape="circle" coords="891,566,9" href="#" alt="취수-구의" onclick="fnShowDetail(1, '008');"/>
+  	<area shape="circle" coords="842,562,9" href="#" alt="취수-자양" onclick="fnShowDetail(1, '024');"/>
+</map>
+</div>
+<div id="menu">
+  <table width="1238" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="467" height="77"><table width="437" border="0" align="right" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="85"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('ps01','','images/bt_posi01.gif',1)"><img src="images/bt_posi0.gif" name="ps01" width="70" height="77" border="0" id="ps01" onclick="fnType01();" /></a></td>
+          <td width="85"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('ps02','','images/bt_posi02.gif',1)"><img src="images/bt_posi0.gif" name="ps02" width="70" height="77" border="0" id="ps02" onclick="fnType02();" /></a></td>
+          <td width="85"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('ps03','','images/bt_posi03.gif',1)"><img src="images/bt_posi0.gif" name="ps03" width="70" height="77" border="0" id="ps03" onclick="fnType03();" /></a></td>
+          <td width="85"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('ps04','','images/bt_posi04.gif',1)"><img src="images/bt_posi0.gif" name="ps04" width="70" height="77" border="0" id="ps04" onclick="fnType04();" /></a></td>
+          <td><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('ps05','','images/bt_posi05.gif',1)"><img src="images/bt_posi0.gif" name="ps05" width="70" height="77" border="0" id="ps05" onclick="fnType05();" /></a></td>
+        </tr>
+      </table></td>
+      <td align="center" valign="bottom"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('reset','','images/bt_reset.gif',1)"></a>
+        <table width="114" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="right"><a href="#" onclick="fnInitReLoad();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('reset','','images/bt_reset.gif',1)"><img src="images/bt_reset0.gif" name="reset" width="110" height="39" border="0" id="reset" /></a></td>
+          </tr>
+        </table></td>
+      <td width="467" valign="bottom"><table width="427" border="0" align="right" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="61"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl01','','images/bt_place01.gif',1)"><img src="images/bt_place18.gif" name="pl01" width="60" height="39" border="0" id="pl01" onclick="fnAreaJung();" onmouseover="MM_swapImage('map_all','','images/map_01.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl02','','images/bt_place02.gif',1)"><img src="images/bt_place27.gif" name="pl02" width="50" height="39" border="0" id="pl02" onclick="fnAreaSeo();" onmouseover="MM_swapImage('map_all','','images/map_02.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl03','','images/bt_place03.gif',1)"><img src="images/bt_place27.gif" name="pl03" width="50" height="39" border="0" id="pl03" onclick="fnAreaDong();" onmouseover="MM_swapImage('map_all','','images/map_03.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl04','','images/bt_place04.gif',1)"><img src="images/bt_place27.gif" name="pl04" width="50" height="39" border="0" id="pl04" onclick="fnAreaBook();" onmouseover="MM_swapImage('map_all','','images/map_04.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl05','','images/bt_place05.gif',1)"><img src="images/bt_place27.gif" name="pl05" width="50" height="39" border="0" id="pl05" onclick="fnAreaKangSeo();" onmouseover="MM_swapImage('map_all','','images/map_05.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl06','','images/bt_place06.gif',1)"><img src="images/bt_place27.gif" name="pl06" width="50" height="39" border="0" id="pl06" onclick="fnAreaNam();" onmouseover="MM_swapImage('map_all','','images/map_06.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td width="51"><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl07','','images/bt_place07.gif',1)"><img src="images/bt_place27.gif" name="pl07" width="50" height="39" border="0" id="pl07" onclick="fnAreaKangNam();" onmouseover="MM_swapImage('map_all','','images/map_07.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+          <td><a href="#" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('pl08','','images/bt_place08.gif',1)"><img src="images/bt_place18.gif" name="pl08" width="60" height="39" border="0" id="pl08" onclick="fnAreaKangDong();" onmouseover="MM_swapImage('map_all','','images/map_08.png',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+        </tr>
+      </table></td>
+    </tr>
+  </table>
+</div>
+<div id="info_t"></div>
+</body>
+</html>

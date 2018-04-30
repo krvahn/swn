@@ -1,0 +1,1123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.SYSTEM">
+    <!-- opensystem - 측정상태 목록조회 -->
+    <select id='selectStatusManagerList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	e.set_date										SET_DATE
+        	, e.status_code									STATUS_CODE
+        	, e.anal_point_code								ANAL_POINT_CODE
+			, e.item_code 									ITEM_CODE
+			, (
+				CASE e.item_code 
+					WHEN 'TB01' THEN '탁도' 
+					WHEN 'PH01' then 'pH' 
+					WHEN 'RC01' then '잔류염소' 
+					WHEN 'TE01' then '수온' 
+					WHEN 'PN01' then '페놀' 
+					WHEN 'SA01' then '시안' 
+					WHEN 'TO01' then 'TOC' 
+					WHEN 'NH01' then 'NH3-n' 
+					ELSE '' 
+				END 
+			) 												ITEM_NAME
+			, (
+				case e.item_code 
+					WHEN 'TB01' then '1' 
+					WHEN 'PH01' then '2' 
+					WHEN 'RC01' then '3' 
+					ELSE '' 
+				END 
+			) 												OUT_ORDER 
+			, a.ww_code							 			WW_CODE 
+			, (
+				CASE a.ww_type 
+					WHEN 'P' then a.ww_name + '아리수정수센터' 
+					ELSE a.ww_name + '수도사업소' 
+				END
+			) 												WW_NAME 
+			, (
+				CASE c.factory_code 
+					WHEN '0' THEN ' ' 
+					WHEN '5' THEN '강북'
+					WHEN '6' THEN '자양'
+					WHEN ' ' THEN '' 
+					ELSE c.factory_code + '정수장 ' 
+				END
+			) + c.anal_point_name + (
+				CASE a.ww_type 
+					WHEN 'P' then '' 
+					ELSE '(' + d.type_name + ')' 
+				END
+			) 												ANAL_POINT_NAME
+		FROM 
+			wb_wellwater a
+			, wb_anal_point c 
+			, wb_point_class d
+			, wb_recent_status e 
+		WHERE
+			a.ww_code = c.ww_code
+			AND c.point_class_code = d.type_code 
+			AND c.anal_point_code = e.anal_point_code
+			AND a.ww_type IN ('P','W') 
+			AND c.use_flag='U'
+		<if test='WW_CODE != "" '>
+    		AND a.ww_code= #{WW_CODE}
+		</if>
+		ORDER BY
+			a.ww_code
+			, e.anal_point_code
+			, out_order
+    </select>
+    
+    <update id='updateStatusMangerItem' parameterType='java.util.HashMap'>
+        UPDATE
+        	 wb_recent_status 
+       	SET 
+       		status_code = #{STATUS_CODE}
+			, set_date = TO_CHAR(sys_datetime, 'YYYYMMDDHH24MI')
+		WHERE 
+			ww_code = #{WW_CODE}
+			AND anal_point_code = #{POINT_CODE}
+			AND item_code = #{ITEM_CODE}
+    </update>
+     
+    <!-- 시스템 - 자료전송현황 - 종합요약 -->
+    <select id='selectDataSendingTotalList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT DISTINCT 
+        	ww_code				WW_CODE
+        	, anal_date			ANAL_DATE
+       	FROM 
+       		wb_currdata WB
+    	WHERE 
+    		ww_code &lt;&gt; 'WW0002' 
+    		AND ww_code &lt;&gt; 'WW0004' 
+    		AND ww_code &lt;&gt; 'WW0008' 
+    		AND anal_date = (SELECT max(anal_date) FROM wb_currdata WHERE ww_code = WB.ww_code)
+   		ORDER BY 
+   			ww_code
+   			, anal_date DESC
+    </select>
+    
+    <!-- 시스템 - 자료전송현황 - 정수센터 및 수도사업소별 -->
+    <select id = 'selectDataSendingOfficeList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	T1.ww_code					WW_CODE
+        	, T2.max_date					ANAL_DATE
+        	, T1.anal_point_name			ANAL_POINT_NAME
+        	, T1.anal_point_code			ANAL_POINT_CODE
+			, T1.type_name				TYPE_NAME
+			, T1.point_name				POINT_NAME
+			, T1.output_order			OUTPUT_ORDEr
+		FROM
+			(
+				SELECT
+					A.ww_code
+					, A.ww_name
+					, B.anal_point_code
+					, B.anal_point_name
+					, A.ww_type
+					, C.type_name
+					, (
+						CASE B.factory_code 
+							WHEN '9' THEN 'N/A' 
+							WHEN '0' THEN '공통' 
+							WHEN '1' THEN '1정수장' 
+							WHEN '2' THEN '2정수장' 
+							WHEN '3' THEN '3정수장'
+							WHEN '4' THEN '정수장_암사' 
+							WHEN '5' THEN '정수장_강북'
+							WHEN '6' THEN '정수장_자양'
+							WHEN '7' THEN '정수장_팔당'
+ 		     				WHEN '8' THEN '정수장_풍납'
+							ELSE '' 
+						END
+					) point_name
+					, B.output_order
+				FROM
+					wb_wellwater A
+					, wb_anal_point B
+					, wb_point_class C
+				WHERE
+					A.ww_code = B.ww_code
+					AND C.type_code = B.point_class_code
+					AND A.ww_type = #{WW_TYPE}
+					AND A.ww_code= #{WW_CODE}
+					AND NOT UPPER(B.use_flag) = 'D'
+				ORDER BY
+					B.output_order
+			) T1(ww_code, ww_name, anal_point_code, anal_point_name, ww_type, type_name, point_name, output_order)
+			LEFT JOIN
+			(
+				SELECT anal_point_code, MAX(anal_date) max_date FROM wb_currdata GROUP BY anal_point_code
+			) T2
+			ON
+			( T1.anal_point_code = T2.anal_point_code )
+		ORDER BY
+			T1.anal_point_code
+			, T1.point_name
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자그룹 - 리스트 -->
+    <select id='seletGroupManagerDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	group_code				GROUP_CODE
+        	, group_name			GROUP_NAME
+        	, group_auth			GROUP_AUTH
+       	FROM 
+       		wb_user_group 
+   		ORDER BY 
+   			group_auth DESC
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자그룹 - select -->
+    <select id='seletOneGroupManagerData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	group_code				GROUP_CODE
+        	, group_name			GROUP_NAME
+        	, group_auth			GROUP_AUTH
+       	FROM 
+       		wb_user_group 
+       	WHERE
+       		group_code = #{GROUP_CODE}
+       		AND ROWNUM = 1
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자그룹 - update -->
+    <update id='updateGroupManagerData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_user_group
+       	SET       		 
+       		group_name = #{GROUP_NAME}
+       		, group_auth = #{GROUP_AUTH}        	
+       	WHERE
+       		group_code = #{GROUP_CODE}
+    </update>
+    
+    <update id='changeGroupManagerData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_user_info
+       	SET       		 
+       		group_code = 'G4'        	
+       	WHERE
+       		group_code = #{GROUP_CODE}
+    </update>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자그룹 - delete -->
+    <delete id='deleteGroupManagerData' parameterType='java.util.HashMap'>
+        DELETE
+       	FROM 
+       		wb_user_group 
+       	WHERE
+       		group_code = #{GROUP_CODE}
+    </delete>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자그룹 - update -->
+    <insert id='insertGroupManagerData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_user_group(
+        		group_code
+        		, group_name
+        		, group_auth
+        	)
+       	VALUES (
+       		#{GROUP_CODE}
+       		, #{GROUP_NAME}
+       		, #{GROUP_AUTH}
+       	)
+    </insert>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 리스트 -->
+    <select id='seletUserManagerDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	UI.user_id				USER_ID
+        	, UI.user_name			USER_NAME
+			, WW.ww_name			WW_NAME
+			, WU.group_name			GROUP_NAME
+		FROM
+			wb_user_info UI
+			, wb_wellwater WW
+			, wb_user_group WU
+		WHERE
+			UI.ww_code = WW.ww_code
+			AND UI.group_code = WU.group_code 
+			AND UI.expire_flag &lt;&gt; '9'
+		<if test='SEARCH_ITEM == "search_group"'>
+		    AND WU.group_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		</if>
+		<if test='SEARCH_ITEM == "search_user"'>
+		    AND UI.user_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		</if>
+		<if test='SEARCH_ITEM == "search_id"'>
+		    AND UI.user_id LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		</if>
+		<if test='SEARCH_ITEM == "search_wwname"'>
+		    AND WW.ww_name LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		</if>
+		ORDER BY 
+			WU.group_name
+			, UI.user_id
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 사용자 정보 -->
+    <select id='seletOneUserManagerData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	group_code				GROUP_CODE 
+        	, user_id				USER_ID
+        	, user_name				USER_NAME
+        	, tel_num				TEL_NUM
+        	, cell_num				CELL_NUM
+        	, WW.WW_TYPE			WW_TYPE
+        	, UI.ww_code			WW_CODE
+        	, alarm_type1			ALARM_TYPE1
+        	, alarm_type2			ALARM_TYPE2
+        	, alarm_type3			ALARM_TYPE3
+        	, sms_wd				SMS_WD
+        	, sms_wn				SMS_WN
+        	, sms_hd				SMS_HD
+        	, sms_hn				SMS_HN
+        	, user_level			USER_LEVEL
+        	, expire_flag			EXPIRE_FLAG
+        	, user_auth				USER_AUTH
+		FROM
+			wb_user_info UI
+			, wb_wellwater WW
+		WHERE
+			UI.ww_code = WW.ww_code
+			AND user_id = #{USER_ID}
+			AND ROWNUM = 1
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 담당 측정지점 삭제 -->
+    <delete id='deleteUserWWCodeData' parameterType='java.util.HashMap'>
+        DELETE
+        FROM
+        	wb_user_wwcode
+        WHERE
+        	user_id = #{USER_ID}
+    </delete>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 담당 측정지점 추가 -->
+    <delete id='insertUserWWCodeData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_user_wwcode
+        	(
+        		ww_code
+        		, user_id
+        		, anal_point_code
+        	)
+        VALUES
+        	(
+        		(SELECT ww_code FROM wb_anal_point WHERE anal_point_code = #{ITEM} AND ROWNUM = 1)
+        		, #{USER_ID}
+        		, #{ITEM}
+        	)
+    </delete>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 사용자정보 추가 -->
+    <insert id='insertUserManagerData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_user_info
+        	(
+        		user_id
+        		, group_code 
+	        	, user_name
+	        	, pwd
+	        	, tel_num
+	        	, cell_num
+	        	, ww_code
+	        	, alarm_type1
+	        	, alarm_type2
+	        	, alarm_type3
+	        	, sms_wd
+	        	, sms_wn
+	        	, sms_hd
+	        	, sms_hn
+	        	, user_level
+	        	, expire_flag
+	        	, user_auth
+	        	, reg_date
+        	)
+        VALUES
+        	(
+        		#{USER_ID}
+        		, #{GROUP_CODE} 
+	        	, #{USER_NAME}
+	        	, #{PWD}
+	        	, #{TEL_NUM}
+	        	, #{CELL_NUM}
+	        	, #{WW_CODE}
+	        	, #{ALARM_TYPE1}
+	        	, #{ALARM_TYPE2}
+	        	, #{ALARM_TYPE3}
+	        	, #{SMS_WD}
+	        	, #{SMS_WN}
+	        	, #{SMS_HD}
+	        	, #{SMS_HN}
+	        	, #{USER_LEVEL}
+	        	, #{EXPIRE_FLAG}
+	        	, #{USER_AUTH}
+	        	, sys_datetime
+        	)
+    </insert>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 사용자정보 수정 -->
+    <update id='updateUserManagerData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_user_info
+        SET
+        	group_code = #{GROUP_CODE} 
+        	, user_name = #{USER_NAME}
+        	, pwd = #{PWD}
+        	, tel_num = #{TEL_NUM}
+        	, cell_num = #{CELL_NUM}
+        	, ww_code = #{WW_CODE}
+        	, alarm_type1 = #{ALARM_TYPE1}
+        	, alarm_type2 = #{ALARM_TYPE2}
+        	, alarm_type3 = #{ALARM_TYPE3}
+        	, sms_wd = #{SMS_WD}
+        	, sms_wn = #{SMS_WN}
+        	, sms_hd = #{SMS_HD}
+        	, sms_hn = #{SMS_HN}
+        	, user_level = #{USER_LEVEL}
+        	, expire_flag = #{EXPIRE_FLAG}
+        	, user_auth = #{USER_AUTH}
+        	, reg_date = sys_datetime
+        WHERE
+        	user_id = #{USER_ID}
+    </update>
+    
+    <!-- 시스템 - 사용자 관리 - 사용자 정보 관리 - 삭제 -->
+    <delete id='deleteUserManagerData' parameterType='java.util.HashMap'>
+        DELETE
+        FROM
+        	wb_user_info
+        WHERE
+        	user_id = #{USER_ID}
+    </delete>
+    
+    <!-- 시스템 - 사용자 관리 - 사업소담당자 정보 -->
+    <select id='seletWaterManagerDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	ww_code					WW_CODE
+        	, ww_name				WW_NAME
+        	, manager_name			MANAGER_NAME
+        	, telnum				TELNUM
+       	FROM 
+       		wb_wellwater 
+       	WHERE
+       		(UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+       		AND ww_type = 'P'
+   		ORDER BY 
+   			output_order
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사업소담당자 정보 - select -->
+    <select id='seletOneWaterManagerData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	ww_code					WW_CODE
+        	, ww_name				WW_NAME
+        	, manager_name			MANAGER_NAME
+        	, telnum				TELNUM
+       	FROM 
+       		wb_wellwater 
+       	WHERE
+       		ww_code = #{WW_CODE}
+       		AND (UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+       		AND ww_type = 'P'
+       		AND ROWNUM = 1
+    </select>
+    
+    <!-- 시스템 - 사용자 관리 - 사업소담당자 정보 - update -->
+    <update id='updateWaterManagerData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_wellwater
+       	SET       		 
+       		manager_name = #{MANAGER_NAME}
+       		, telnum = #{TELNUM}        	
+       	WHERE
+       		ww_code = #{WW_CODE}
+       		AND (UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+       		AND ww_type = 'P'
+    </update>
+    
+    <!-- 시스템 - 측정포인트관리 - (정수센터, 수도사업소) -->
+    <select id='seletPointOfficeDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WAP.anal_point_code							POINT_CODE
+        	, WAP.ww_code								WW_CODE
+        	, WAP.anal_point_name						POINT_NAME
+        	, WAP.water_path							WATER_PATH_CODE
+        	, WAP.factory_code							FACTORY_CODE
+			, WW.ww_name								WW_NAME
+			, WPC.type_name								TYPE_NAME
+			, WW.ww_type								WW_TYPE
+			, (
+				CASE WW.ww_type 
+					WHEN 'P' THEN '정수사업소' 
+					WHEN 'W' THEN '수도사업소' 
+					ELSE '' 
+				END
+			) 											WW_TYPE_NAME
+			, (
+				CASE WW.ww_type 
+					WHEN 'P' THEN
+						CASE WAP.factory_code 
+			        		WHEN '9' THEN 'N/A'
+							WHEN '0' THEN '공통' 
+							WHEN '1' THEN '1정수장'
+							WHEN '2' THEN '2정수장'
+							WHEN '3' THEN '3정수장'
+							WHEN '4' THEN '정수장_암사' 
+							WHEN '5' THEN '정수장_강북'
+							WHEN '6' THEN '정수장_자양'
+							WHEN '7' THEN '정수장_팔당'
+ 		     				WHEN '8' THEN '정수장_풍납'
+							ELSE '' 
+						END
+					ELSE '' 
+				END
+			)											FACTORY_NAME
+			, (
+				CASE WW.ww_type 
+					WHEN 'W' THEN
+						(SELECT ww_name FROM wb_wellwater WHERE ww_code = WAP.water_path AND ROWNUM = 1)
+					ELSE '' 
+				END
+			)											WATER_PATH_NAME
+		FROM 
+			wb_anal_point WAP
+			, wb_wellwater WW
+			, wb_point_class WPC
+		WHERE
+			WAP.point_class_code = WPC.type_code
+			AND WW.ww_code = WAP.ww_code
+		<if test='WW_TYPE != ""'>
+		    AND WW.ww_type = #{WW_TYPE}
+		</if>
+		<if test='WW_CODE != ""'>
+		    AND WW.ww_code = #{WW_CODE}
+		</if>
+		<if test='FACTORY_CODE != ""'>
+		    AND WW.ww_type = 'P'
+		    AND WAP.factory_code = #{FACTORY_CODE}
+		</if>
+		<if test='POINT_CODE != ""'>
+		    AND WAP.anal_point_code = #{POINT_CODE}
+		</if>
+		<if test='POINT_NAME != ""'>
+		    AND WW.ww_type = 'P'
+		    AND WAP.anal_point_name = #{POINT_NAME}
+		</if>
+		<if test='WATER_PATH_CODE != ""'>
+		    AND WW.ww_type = 'W'
+		    AND WAP.water_path = #{WATER_PATH_CODE}
+		</if>
+			AND WAP.use_flag = 'U'
+		ORDER BY 
+			WW.ww_type
+			, WW.output_order
+			, WW.ww_code			
+			, WAP.factory_code
+			, WAP.anal_point_code
+    </select>
+    
+    <!-- 시스템 - 측정포인트관리 - (정수센터, 수도사업소) - select -->
+    <select id='seletOnePointOfficeData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	#{WW_TYPE}									WW_TYPE
+        	, ww_code									WW_CODE 
+        	, anal_point_code							POINT_CODE
+		<if test='WW_TYPE == "P"'>			    
+		    , factory_code								PLANT_FACTORY_CODE
+		    , point_class_code							PLANT_POINT_CLASS_CODE
+		    , anal_point_name							PLANT_POINT_NAME
+		    , ''										WATER_PATH_CODE
+		    , ''										WATER_TYPE_CODE		    
+		    , ''										WATER_POINT_NAME
+		</if>
+		<if test='WW_TYPE == "W"'>
+		    , ''										PLANT_FACTORY_CODE
+		    , ''										PLANT_POINT_CLASS_CODE
+		    , ''										PLANT_POINT_NAME
+		    , water_path								WATER_PATH_CODE
+		    , point_class_code							WATER_TYPE_CODE		    
+		    , anal_point_name							WATER_POINT_NAME			    
+		</if>
+		FROM 
+			wb_anal_point
+		WHERE
+			ww_code = #{WW_CODE}
+			AND anal_point_code = #{POINT_CODE}
+			AND use_flag = 'U'
+			AND ROWNUM = 1
+    </select>
+    
+    <update id='updatePointOfficeDataForDelete' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_anal_point
+        SET
+        	use_flag = 'D'
+		WHERE
+			anal_point_code = #{POINT_CODE}
+    </update>
+    
+    <insert id='insertPointOfficeData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_anal_point (
+        		ww_code 
+        		, anal_point_code
+        		, anal_point_name
+        		, factory_code
+        		, water_path
+        		, point_class_code        		
+        		, use_flag
+        		, output_order
+        		, dis_order
+        	)
+        VALUES
+        	(
+        		#{WW_CODE}
+        		, RIGHT( '00' + CAST((SELECT MAX(TO_NUMBER(anal_point_code))+1 FROM wb_anal_point) AS VARCHAR(3)), 3)
+			<if test='WW_TYPE == "P"'>
+			    , #{PLANT_POINT_NAME}
+			    , #{PLANT_FACTORY_CODE}
+			    , ''
+			    , #{PLANT_POINT_CLASS_CODE}
+			</if>
+			<if test='WW_TYPE == "W"'>
+			    , #{WATER_POINT_NAME}
+			    , ''
+			    , #{WATER_PATH_CODE}
+			    , #{WATER_POINT_CLASS_CODE}
+			</if>    
+				, 'U'
+				, 1
+				, 11
+        	)
+    </insert>
+    
+    <update id='updatePointOfficeData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_anal_point
+        SET
+        	ww_code = #{WW_CODE}
+		<if test='WW_TYPE == "P"'>        	
+        	, anal_point_name = #{PLANT_POINT_NAME}
+       		, factory_code = #{PLANT_FACTORY_CODE}
+       		, water_path = ''
+       		, point_class_code = #{PLANT_POINT_CLASS_CODE}
+       	</if>
+		<if test='WW_TYPE == "W"'>
+		    , anal_point_name = #{WATER_POINT_NAME}
+       		, factory_code = ''
+       		, water_path = #{WATER_PATH_CODE}
+       		, point_class_code = #{WATER_POINT_CLASS_CODE}
+		</if>
+		WHERE
+			anal_point_code = #{POINT_CODE}
+    </update>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - 리스트 -->
+    <select id='selectMeasureItemDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WAI.item_code						ITEM_CODE
+        	, WAI.anal_item_name				ANAL_ITEM_NAME
+        	, WAI.anal_unit						ANAL_UNIT
+        	, WAI.user_id						USER_ID
+        	, WIS.point_class					POINT_CLASS
+        	, WP.type_name						TYPE_NAME
+			, WAI.use_flag 						USE_FLAG
+			, WAI.open_flag						OPEN_FLAG
+			, (
+				CASE WIS.use_flag 
+					WHEN 'U' THEN '사용' 
+					WHEN 'D' THEN '미사용' 
+					ELSE '' 
+				END
+			) 									USE_TEXT 
+			, WIS.highhigh						HIGH_HIGH
+			, WIS.high							HIGH
+			, WIS.lowlow						LOW_LOW
+			, WIS.low							LOW
+		FROM 
+			wb_anal_item WAI
+			, wb_item_standard_1 WIS
+			, wb_point_class WP
+		WHERE
+			WIS.item_code = WAI.item_code 
+			AND WP.type_code = WIS.point_class
+		ORDER BY 
+			WIS.use_flag desc
+			, WIS.point_class
+			, WAI.item_code
+    </select>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - select -->
+    <select id='seletOneMeasureItemData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WAI.item_code						ITEM_CODE
+        	, WAI.anal_item_name				ITEM_NAME
+        	, WAI.anal_unit						ANAL_UNIT
+        	, WIS.point_class					POINT_CLASS
+        	, WP.type_name						TYPE_NAME
+			, WIS.use_flag 						USE_FLAG
+			, WIS.highhigh						HIGH_HIGH
+			, WIS.high							HIGH
+			, WIS.lowlow						LOW_LOW
+			, WIS.low							LOW
+			, WAI.item_remark					ITEM_REMARK
+		FROM 
+			wb_anal_item WAI
+			, wb_item_standard_1 WIS
+			, wb_point_class WP
+		WHERE
+			WIS.item_code = WAI.item_code 
+			AND WP.type_code = WIS.point_class
+			AND WAI.item_code = #{ITEM_CODE}
+			AND WIS.point_class = #{POINT_CLASS}
+			AND ROWNUM = 1
+		ORDER BY 
+			WIS.update_times DESC
+    </select>
+    
+    <select id='selectOneExistAppendMeasureItemData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	COUNT(WAI.item_code) 	ITEM_CNT
+        FROM
+        	wb_anal_item WAI
+        	, wb_item_standard_1 WIS
+		WHERE
+			WAI.item_code = WIS.item_code
+			AND WAI.item_code = #{ITEM_CODE}
+			AND WIS.point_class = #{POINT_CLASS}
+    </select>
+    
+    <select id='selectOneExistAddMeasureItemData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	COUNT(WAI.item_code) 	ITEM_CNT
+        FROM
+        	wb_anal_item WAI
+		WHERE
+			WAI.item_code = #{ITEM_CODE}
+    </select>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - update(anal_item) -->
+    <update id='updateMeasureItemDataForAnalItem' parameterType='java.util.HashMap'>
+        UPDATE 
+        	wb_anal_item 
+       	SET
+			anal_item_name = #{ITEM_NAME}
+			, item_remark =  #{ITEM_REMARK}
+			, anal_unit = #{ANAL_UNIT}
+			, user_id = #{USER_ID}	
+			, use_flag = 
+			(
+				CASE (SELECT COUNT(item_code) FROM wb_item_standard_1 WHERE item_code = #{ITEM_CODE} AND use_flag = 'U')
+					WHEN 0 THEN 'D' 
+					ELSE 'U'
+				END
+			)
+		WHERE 
+			item_code = #{ITEM_CODE}
+    </update>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - update(item_standard_1) -->
+    <update id='updateMeasureItemDataForItemStandard1' parameterType='java.util.HashMap'>
+        UPDATE 
+        	wb_item_standard_1 
+       	SET
+			update_times = (update_times + 1)				
+			, highhigh =  #{HIGH_HIGH}
+			, high = #{HIGH}
+			, lowlow =  #{LOW_LOW}
+			, low = #{LOW}
+			, set_date = sys_date	
+			, use_flag = #{USE_FLAG}
+		WHERE 
+			item_code = #{ITEM_CODE}
+			AND point_class = #{POINT_CLASS}
+    </update>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - insert(anal_item) -->
+    <insert id='insertMeasureItemDataForAnalItem' parameterType='java.util.HashMap'>
+        INSERT INTO 
+        	wb_anal_item 
+        	(
+        		item_code
+        		, anal_item_name
+        		, item_remark
+        		, anal_unit
+        		, user_id
+        		, use_flag
+        	)
+        VALUES
+        	(
+        		#{ITEM_CODE}
+        		, #{ITEM_NAME}
+        		, #{ITEM_REMARK}
+        		, #{ANAL_UNIT}
+        		, #{USER_ID}
+        		, #{USE_FLAG}
+        	)
+    </insert>
+    
+    <!-- 시스템 - 측정항목관리 - 측정항목리스트 - insert(item_standard_1) -->
+    <insert id='insertMeasureItemDataForItemStandard1' parameterType='java.util.HashMap'>
+        INSERT INTO 
+        	wb_item_standard_1 
+       		(
+        		item_code
+        		, update_times
+        		, highhigh
+        		, high
+        		, lowlow
+        		, low
+        		, point_class
+        		, set_date
+        		, use_flag
+        	)
+        VALUES
+        	(
+        		#{ITEM_CODE}
+        		, 1
+        		, #{HIGH_HIGH}
+        		, #{HIGH}
+        		, #{LOW_LOW}
+        		, #{LOW}
+        		, #{POINT_CLASS}
+        		, sys_date
+        		, #{USE_FLAG}
+        	)
+    </insert>    
+    
+    <!-- 시스템 관리 - 측정항목설정 - 미선택 -->
+    <select id='selectItemSetUnselectList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+		SELECT
+        	item_code				ITEM_CODE
+        	, item_remark			ITEM_REMARK
+        	, anal_item_name		ITEM_NAME
+		FROM 
+			wb_anal_item
+		ORDER BY
+			anal_item_name
+    </select>
+    
+    <!-- 시스템 관리 - 측정항목설정 - 선택 -->
+    <select id='selectItemSetSelectList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	WAI.item_code			ITEM_CODE
+        	, item_remark			ITEM_REMARK
+        	, anal_item_name		ITEM_NAME
+		FROM 
+			wb_anal_master WAM
+			, wb_anal_item WAI
+		WHERE 
+			WAM.item_code = WAI.item_code
+			AND WAM.point_code = #{POINT_CODE}
+		ORDER BY
+			anal_item_name
+    </select>
+    
+    <delete id='deleteItemSetList' parameterType='java.util.HashMap'>
+		DELETE FROM
+			wb_anal_master
+		WHERE
+			point_code = #{POINT_CODE}
+    </delete>
+    
+    <insert id='insertItemSetList' parameterType='java.util.HashMap'>
+		INSERT INTO
+			wb_anal_master 
+			(
+				point_code
+				, item_code
+			) 
+		VALUES
+			(
+				#{POINT_CODE}
+				, #{ITEM_CODE}
+			)
+    </insert>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 소분류 - 리스트 -->
+    <select id='selectStatusSubDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WS.top_status_code		TOP_STATUS_CODE
+        	, (
+        		SELECT 
+        			WT.top_status_name
+        		FROM
+        			wb_top_status WT
+        		WHERE
+        			WT.top_status_code = WS.top_status_code
+        			AND WT.use_flag = 'U'
+        			AND ROWNUM = 1
+       		)						TOP_STATUS_NAME
+        	, WS.status_code		STATUS_CODE
+        	, WS.status_name		STATUS_NAME
+        	, WS.status_desc		STATUS_DESC
+        	, (
+        		CASE WS.status_type 
+					WHEN 'A' THEN '자동' 
+					WHEN 'S' THEN '수동'
+					ELSE '' 
+				END
+			) 						STATUS_TYPE_NAME
+        	, WS.status_type		STATUS_TYPE
+       	FROM 
+       		wb_status WS 
+   		ORDER BY 
+   			status_code
+    </select>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 소분류 - select -->
+    <select id='seletOneStatusSubData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WS.top_status_code		TOP_STATUS_CODE
+        	, WS.status_code		STATUS_CODE
+        	, WS.status_name		STATUS_NAME
+        	, WS.status_type		STATUS_TYPE
+        	, WS.status_desc		STATUS_DESC        	
+       	FROM 
+       		wb_status WS 
+       	WHERE
+       		WS.top_status_code = #{TOP_STATUS_CODE}
+       		AND WS.status_code = #{STATUS_CODE}
+       		AND ROWNUM = 1
+    </select>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 소분류 - update -->
+    <update id='updateStatusSubData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_status
+       	SET       		 
+       		status_name = #{STATUS_NAME}
+       		, status_type = #{STATUS_TYPE}
+        	, status_desc = #{STATUS_DESC}        	
+       	WHERE
+       		top_status_code = #{TOP_STATUS_CODE}
+       		AND status_code = #{STATUS_CODE}
+    </update>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 소분류 - delete -->
+    <delete id='deleteStatusSubData' parameterType='java.util.HashMap'>
+        DELETE
+       	FROM 
+       		wb_status 
+       	WHERE
+       		top_status_code = #{TOP_STATUS_CODE}
+       		AND status_code = #{STATUS_CODE}
+    </delete>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 소분류 - update -->
+    <insert id='insertStatusSubData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_status(
+        		top_status_code
+        		, status_code
+        		, status_name
+        		, status_type
+        		, status_desc
+        	)
+       	VALUES (
+       		#{TOP_STATUS_CODE}
+       		, #{STATUS_CODE}
+       		, #{STATUS_NAME}
+       		, #{STATUS_TYPE}
+       		, #{STATUS_DESC}
+       	)
+    </insert>
+    
+     <!-- 시스템 - 상태정보관리 - 상태정보 대분류 - 리스트 -->
+    <select id='selectStatusTopDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WS.top_status_code		TOP_STATUS_CODE
+        	, WS.top_status_name	TOP_STATUS_NAME
+        	, WS.use_flag			USE_FLAG
+       	FROM 
+       		wb_top_status WS 
+   		ORDER BY 
+   			top_status_code
+    </select>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 대분류 - select -->
+    <select id='seletOneStatusTopData' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT 
+        	WS.top_status_code		TOP_STATUS_CODE
+        	, WS.top_status_name	TOP_STATUS_NAME
+        	, WS.use_flag			USE_FLAG
+       	FROM 
+       		wb_top_status WS  
+       	WHERE
+       		WS.top_status_code = #{TOP_STATUS_CODE}
+       		AND ROWNUM = 1
+    </select>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 대분류 - update -->
+    <update id='updateStatusTopData' parameterType='java.util.HashMap'>
+        UPDATE
+        	wb_top_status
+       	SET       		 
+       		top_status_name = #{TOP_STATUS_NAME}
+       		, use_flag = #{USE_FLAG}        	
+       	WHERE
+       		top_status_code = #{TOP_STATUS_CODE}
+    </update>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 대분류 - delete -->
+    <delete id='deleteStatusTopData' parameterType='java.util.HashMap'>
+        DELETE
+       	FROM 
+       		wb_top_status 
+       	WHERE
+       		top_status_code = #{TOP_STATUS_CODE}
+    </delete>
+    
+    <!-- 시스템 - 상태정보관리 - 상태정보 대분류 - update -->
+    <insert id='insertStatusTopData' parameterType='java.util.HashMap'>
+        INSERT INTO
+        	wb_top_status(
+        		top_status_code
+        		, top_status_name
+        		, use_flag
+        	)
+       	VALUES (
+       		#{TOP_STATUS_CODE}
+       		, #{TOP_STATUS_NAME}
+       		, #{USE_FLAG}
+       	)
+    </insert>
+    
+    <!-- 시스템 - 기준치 초과 이력 - 정수센터 -->
+    <select id="selectBaseLineExecPlantDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+    		WW.ww_name									WW_NAME
+    		,WAP.anal_point_name						POINT_NAME
+    		,WA.start_item_val							START_ITEM_VAL
+    		,(CASE WA.alarm_type 
+    			WHEN '1' THEN '기준치초과' 
+    			WHEN '2' THEN '측정상태이상' 
+    			WHEN '3' THEN '전송상태이상' 
+    			ELSE '' 
+   			END) 										ALARM_TYPE
+			,WIS.highhigh								HIGH_HIGH
+			,WIS.lowlow									LOW_LOW
+			,WA.start_date								START_DATE
+			,WAI.anal_item_name							ITEM_NAME
+			,WAI.anal_unit								ITEM_UNIT
+			,(CASE WAP.factory_code 
+				WHEN '9' THEN 'N/A' 
+				WHEN '0' THEN '공통' 
+				WHEN '1' THEN '1정수장' 
+				WHEN '2' THEN '2정수장' 
+				WHEN '3' THEN '3정수장' 
+				WHEN '4' THEN '정수장_암사' 
+				WHEN '5' THEN '정수장_강북'
+				WHEN '6' THEN '정수장_자양'
+				WHEN '7' THEN '정수장_팔당'
+ 		     	WHEN '8' THEN '정수장_풍납'
+				ELSE '' 
+			END) 										FACTORY_NAME
+		FROM
+			wb_alarmhist WA
+			,wb_item_standard_1 WIS
+			,wb_wellwater WW
+			,wb_anal_point WAP
+			,wb_anal_item WAI
+			,wb_point_class WPC
+		WHERE		  
+			WA.item_code = WIS.item_code
+			AND WA.item_code = WAI.item_code
+			AND WAP.anal_point_code = WA.anal_point_code
+			AND WAP.ww_code = WW.ww_code
+			AND WAP.point_class_code = WIS.point_class
+			AND WAP.point_class_code = WPC.type_code
+			AND WAP.anal_point_code = #{POINT_CODE}
+			AND WA.start_date between #{FROM_DATE} AND #{TO_DATE} 
+		ORDER BY 
+			WA.start_date
+    </select>
+    
+    <!-- 시스템 - 기준치 초과 이력 - 수도사업소 -->
+    <select id="selectBaseLineExecWaterDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        	SELECT 
+    		WW.ww_name									WW_NAME
+    		,WAP.anal_point_name						POINT_NAME
+    		,WA.start_item_val							START_ITEM_VAL
+    		,(CASE WA.alarm_type 
+    			WHEN '1' THEN '기준치초과' 
+    			WHEN '2' THEN '측정상태이상' 
+    			WHEN '3' THEN '전송상태이상' 
+    			ELSE '' 
+   			END) 										ALARM_TYPE
+			,WIS.highhigh								HIGH_HIGH
+			,WIS.lowlow									LOW_LOW
+			,WA.start_date								START_DATE
+			,WAI.anal_item_name							ITEM_NAME
+			,WAI.anal_unit								ITEM_UNIT
+			,SUBSTRING(WPC.type_name FROM 0 FOR 2)		FACTORY_NAME
+		FROM
+			wb_alarmhist WA
+			,wb_item_standard_1 WIS
+			,wb_wellwater WW
+			,wb_anal_point WAP
+			,wb_anal_item WAI
+			,wb_point_class WPC
+		WHERE		  
+			WA.item_code = WIS.item_code
+			AND WA.item_code = WAI.item_code
+			AND WAP.anal_point_code = WA.anal_point_code
+			AND WAP.ww_code = WW.ww_code
+			AND WAP.point_class_code = WIS.point_class
+			AND WAP.point_class_code = WPC.type_code
+			AND WAP.anal_point_code = #{POINT_CODE}
+			AND WA.start_date between #{FROM_DATE} AND #{TO_DATE} 
+		ORDER BY 
+			WA.start_date
+    </select>
+    
+    <!-- 시스템 - SMS 전송 이력 리스트 -->
+    <select id='selectSmsSendList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+        	COUNT(a.user_id) 	RECEIVE_COUNT        	
+        	, a.msg				MSG
+        	, b.start_date		START_DATE
+        	, b.end_date		END_DATE
+        	, b.alarm_type		ALARM_TYPE
+        	, (CASE b.alarm_type 
+    			WHEN '1' THEN '기준치초과' 
+    			WHEN '2' THEN '측정상태이상' 
+    			WHEN '3' THEN '전송상태이상' 
+    			ELSE '' 
+   			END)				ALARM_MSG
+		FROM 
+			wb_smshist a
+			, wb_alarmhist b
+			LEFT OUTER JOIN
+				wb_wellwater c 
+			ON B.ww_code = c.ww_code
+		WHERE
+			a.alarm_id = b.alarm_id 
+			AND b.ww_code = #{WW_CODE}
+			AND b.start_date BETWEEN #{FROM_DATE} AND #{TO_DATE}			
+		<if test='SMS_TYPE != ""'>
+			AND b.alarm_type = #{SMS_TYPE}	
+		</if>
+		<if test='SMS_MSG != ""'>
+			AND a.msg LIKE '%' + #{SMS_MSG} + '%'
+		</if>
+		GROUP BY
+			a.msg
+			, b.start_date
+			, b.end_date
+			, b.alarm_type
+		ORDER BY
+			b.start_date desc
+			, b.end_date desc
+    </select>
+</mapper>

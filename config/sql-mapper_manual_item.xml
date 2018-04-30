@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.MANAUL_ITEM">
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <select id='selectLabMeasureItemDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT  
+        	WAI.item_code						ITEM_CODE
+        	, WAI.item_kname					ITEM_KNAME
+        	, WAI.item_unit						ITEM_UNIT
+        	, WAI.ww_type						WW_TYPE
+			, WAI.water_type					WATER_TYPE
+			, WAI.check_cycle					CHECK_CYCLE
+			, WAI.item_16						ITEM_16
+			, WAI.item_23						ITEM_23
+			, WAI.item_47						ITEM_47
+			, WAI.item_55						ITEM_55
+			, 
+			(
+				CASE WAI.check_cycle 
+					WHEN 'D' THEN '일일' 
+					WHEN 'W' THEN '주간'  
+					WHEN 'M' THEN '월간'
+					WHEN 'Q' THEN '분기'
+					ELSE '' END
+			) 									CHECK_TEXT
+			, 
+			(
+				CASE WAI.water_type 
+					WHEN 'A' THEN '전체' 
+					WHEN 'O' THEN '원수' 
+					WHEN 'P' THEN '정수' 
+					ELSE '' 
+				END
+			) 									WATER_TEXT
+			, WIS.env_low						ENV_LOW
+			, WIS.env_high						ENV_HIGH
+			, WIS.eat_low						EAT_LOW
+			, WIS.eat_high						EAT_HIGH
+	 	FROM 
+	 		wb_lab_item WAI
+	 		, wb_lab_item_standard WIS
+	 	WHERE 
+	 		WIS.item_code = WAI.item_code
+	 	<if test='WW_TYPE != ""'>
+	 	 	AND WAI.ww_type = #{WW_TYPE}   
+	 	</if>
+	 	<choose>
+	 	    <when test='WATER_TYPE == "A"'></when> 
+	 	    <when test='WATER_TYPE == ""'></when>
+	 	    <otherwise>
+	 	    	AND WAI.water_type = #{WATER_TYPE}    
+	 	    </otherwise>
+	 	</choose>
+	 	<if test='CHECK_CYCLE != ""'>
+	 	 	AND WAI.check_cycle = #{CHECK_CYCLE}   
+	 	</if>
+	 	<choose>
+	 	    <when test='ITEM_KIND == "item_16"'>
+	 	    	AND WAI.item_16 = 'Y'    
+	 	    </when>
+	 	    <when test='ITEM_KIND == "item_23"'>
+	 	    	AND WAI.item_23 = 'Y'
+	 	    </when>   
+	 	    <when test='ITEM_KIND == "item_47"'>
+	 	    	AND WAI.item_47 = 'Y'   
+	 	    </when>
+	 	    <when test='ITEM_KIND == "item_55"'>
+	 	    	AND WAI.item_55 = 'Y'    
+	 	    </when>
+	 	</choose>
+	 	<if test='SEARCH_KEYWORD != ""'>
+	 	 	AND 
+	 	 	( 
+	 	 		WAI.item_kname LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		 		OR
+		 		WAI.item_ename  LIKE '%' + #{SEARCH_KEYWORD} + '%'
+		 	)   
+	 	</if>
+	 	ORDER BY 
+	 		WAI.water_type
+	 		, output_order
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <select id='seletOneLabMeasureItemData' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	WAI.item_code				ITEM_CODE
+        	, WAI.item_kname			ITEM_KNAME
+        	, WAI.item_ename			ITEM_ENAME
+        	, WAI.item_unit				ITEM_UNIT
+			, WAI.ww_type				WW_TYPE
+			, WAI.water_type			WATER_TYPE
+			, WAI.check_cycle			CHECK_CYCLE
+			, WAI.item_16				ITEM_16
+			, WAI.item_23				ITEM_23
+			, WAI.item_47				ITEM_47
+			, WAI.item_55				ITEM_55
+			, WIS.env_low				ENV_LOW
+			, WIS.env_high				ENV_HIGH
+			, WIS.eat_low				EAT_LOW
+			, WIS.eat_high				EAT_HIGH
+			, WAI.output_order			OUTPUT_ORDER
+			, WAI.remark				REMARK
+		FROM
+			wb_lab_item WAI
+			, wb_lab_item_standard WIS
+		WHERE
+			WIS.item_code = WAI.item_code
+			AND WAI.item_code = #{ITEM_CODE}
+			AND ROWNUM = 1
+		ORDER BY
+			WAI.output_order
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <select id='seletOneLabMeasureItemMaxOutputOrderData' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	max(output_order)			OUTPUT_ORDER
+        FROM
+        	wb_lab_item
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <delete id='deleteLabeMeasureItemData' parameterType="java.util.HashMap">
+        DELETE
+        FROM
+        	wb_lab_item
+        WHERE
+        	item_code = #{ITEM_CODE}
+    </delete>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <delete id='deleteLabeMeasureItemStandardData' parameterType="java.util.HashMap">
+        DELETE
+        FROM
+        	wb_lab_item_standard
+        WHERE
+        	item_code = #{ITEM_CODE}
+    </delete>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <update id='updateLabMeasureItemData' parameterType="java.util.HashMap">
+        UPDATE
+        	wb_lab_item
+        SET
+        	item_kname = #{ITEM_KNAME}
+        	, item_ename = #{ITEM_ENAME}
+        	, item_unit = #{ITEM_UNIT}
+        	, check_cycle = #{CHECK_CYCLE}
+        	, water_type = #{WATER_TYPE}
+        	, ww_type = #{WW_TYPE}
+        	, item_16 = #{ITEM_16}
+        	, item_23 = #{ITEM_23}
+        	, item_47 = #{ITEM_47}
+        	, item_55 = #{ITEM_55}
+        	, output_order = #{OUTPUT_ORDER}
+        	, remark = #{REMARK}
+        WHERE
+        	item_code = #{ITEM_CODE}
+    </update>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <update id='updateLabMeasureItemStandardData' parameterType="java.util.HashMap">
+        UPDATE
+        	wb_lab_item_standard
+        SET
+        	set_date = TO_CHAR(sys_datetime, 'YYYYMMDD')
+        	, update_times = update_times + 1
+        	, env_high = #{ENV_HIGH}
+        	, env_low = #{ENV_LOW}
+        	, eat_high = #{EAT_HIGH}
+        	, eat_low = #{EAT_LOW}
+        WHERE
+        	item_code = #{ITEM_CODE}
+    </update>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <insert id='insertLabMeasureItemData' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_lab_item(
+        		item_code
+        		, item_kname
+        		, item_ename
+        		, item_unit
+        		, check_cycle
+        		, water_type
+	        	, ww_type
+	        	, item_16
+	        	, item_23
+	        	, item_47
+	        	, item_55
+	        	, output_order
+	        	, remark
+        	) VALUES (
+        		#{ITEM_CODE}
+        		, #{ITEM_KNAME}
+        		, #{ITEM_ENAME}
+	        	, #{ITEM_UNIT}
+	        	, #{CHECK_CYCLE}
+	        	, #{WATER_TYPE}
+	        	, #{WW_TYPE}
+	        	, #{ITEM_16}
+	        	, #{ITEM_23}
+	        	, #{ITEM_47}
+	        	, #{ITEM_55}
+	        	, #{OUTPUT_ORDER}
+	        	, #{REMARK}
+        	)
+    </insert>
+    
+    <!-- 정수센터입력정보 - 실험실 측정항목 설정 -->
+    <insert id='insertLabMeasureItemStandardData' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_lab_item_standard (
+        		item_code
+        		, set_date
+	        	, update_times
+	        	, env_high
+	        	, env_low
+	        	, eat_high
+	        	, eat_low
+        	) VALUES (
+        		#{ITEM_CODE}
+        		, TO_CHAR(sys_datetime, 'YYYYMMDD')
+	        	, 1
+	        	, #{ENV_HIGH}
+	        	, #{ENV_LOW}
+	        	, #{EAT_HIGH}
+	        	, #{EAT_LOW}
+        	)
+    </insert>
+</mapper>

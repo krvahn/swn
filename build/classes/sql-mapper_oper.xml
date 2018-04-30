@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.OPER">
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 수질현황 -->
+    <select id="selectOperResultDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+			WW.ww_code									WW_CODE
+		    , (
+		    	CASE WW.ww_code
+		    		WHEN 'WW0000' THEN '본부 급수운영과'
+		    		ELSE
+		    			WW.ww_name || (
+					    	CASE WW.ww_type
+					    		WHEN 'P' THEN '정수센터'
+					    		WHEN 'W' THEN '수도'
+					    		ELSE ''
+					    	END
+		    			)		
+		    	END
+		    )											WW_NAME
+		    , WO.check_yn								CHECK_YN
+		    , WO.unusual_yn								UNUSUAL_YN
+		    , WO.unusual_content						UNUSUAL_CONTENT
+		    , (SELECT WU.user_name FROM wb_user_info WU WHERE WU.user_id = WO.check_id AND ROWNUM = 1) CHECK_NAME
+		    , WO.check_date								CHECK_DATE
+		    , WO.confirm_content						CONFIRM_CONTENT
+		    , (SELECT WU.user_name FROM wb_user_info WU WHERE WU.user_id = WO.confirm_id AND ROWNUM = 1) CONFIRM_NAME
+		    , WO.confirm_date							CONFIRM_DATE
+		FROM
+			wb_wellwater WW
+			LEFT OUTER JOIN wb_oper_result WO ON WW.ww_code = WO.ww_code AND ww_date = #{WORK_DATE} 
+		WHERE
+			(ww_type = 'W' OR ww_type = 'P' OR ww_type = 'M')
+			AND (UPPER(use_flag) = 'Y' OR UPPER(use_flag) = 'U')
+		ORDER BY
+			WW.ww_type
+			, WW.output_order
+    </select>
+    
+    <select id='selectOperResultDataCnt' parameterType="java.util.HashMap" resultType="int">
+        SELECT
+        	COUNT(ww_code)
+        FROM
+        	wb_oper_result
+        WHERE
+        	ww_code = #{WW_CODE}
+        	AND ww_date = #{WORK_DATE}
+    </select>
+    
+    <insert id='insertOperResultCheckData' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_oper_result (
+        		ww_code
+        		, ww_date
+        		, check_yn
+        		, unusual_yn
+        		, unusual_content
+        		, check_id
+        		, check_date
+        	    , confirm_content
+        	    , confirm_id
+        	    , confirm_date
+        	) 
+        VALUES (
+        		#{WW_CODE}
+        		, #{WORK_DATE}
+        		, IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', 'Y', 'N')
+        		, IF(UPPER(#{UNUSUAL_YN_${WW_CODE}}) = 'ON', 'Y', 'N')
+        		, IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', '이상없음', #{UNUSUAL_CONTENT_${WW_CODE}})
+        		, #{USER_ID}
+        		, TO_CHAR(sys_datetime, 'YYYYMMDD')
+        		, IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', '이상없음', null)
+        		, IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', #{USER_ID}, null)
+        		, IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', TO_CHAR(sys_datetime, 'YYYYMMDD'), null)
+        	)
+    </insert>
+    
+    <update id='updateOperResultCheckData' parameterType="java.util.HashMap">
+        UPDATE
+        	wb_oper_result
+        SET
+        	check_yn = IF(UPPER(#{CHECK_YN_${WW_CODE}}) = 'ON', 'Y', 'N')
+        	, unusual_yn = IF(UPPER(#{UNUSUAL_YN_${WW_CODE}}) = 'ON', 'Y', 'N')
+        	, unusual_content = #{UNUSUAL_CONTENT_${WW_CODE}}
+        	, check_id = #{USER_ID}
+        	, check_date = TO_CHAR(sys_datetime, 'YYYYMMDD')
+        WHERE        
+        	ww_code = #{WW_CODE}
+        	AND ww_date = #{WORK_DATE}
+    </update>
+    
+    <insert id='insertOperResultConfirmData' parameterType="java.util.HashMap">
+        INSERT INTO
+        	wb_oper_result (
+        		ww_code
+        		, ww_date
+        	    , confirm_content
+        	    , confirm_id
+        	    , confirm_date
+        	) 
+        VALUES (
+        		#{WW_CODE}
+        		, #{WORK_DATE}
+        	    , #{CONFIRM_CONTENT_${WW_CODE}}
+        	    , #{USER_ID}
+        	    , TO_CHAR(sys_datetime, 'YYYYMMDD')
+        	)
+    </insert>
+    
+    <update id='updateOperResultConfirmData' parameterType="java.util.HashMap">
+        UPDATE
+        	wb_oper_result
+        SET
+        	confirm_content = #{CONFIRM_CONTENT_${WW_CODE}}
+        	, confirm_id = #{USER_ID}
+        	, confirm_date = TO_CHAR(sys_datetime, 'YYYYMMDD')
+        WHERE        
+        	ww_code = #{WW_CODE}
+        	AND ww_date = #{WORK_DATE}
+    </update>
+    
+    <select id='selectOperResultConfirmDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+			WB.ww_date							WW_DATE
+		<foreach collection="ITEMS" item="ITEM">      	    	
+    		, T_${ITEM}.unusual_yn				UNUSUAL_YN_${ITEM}
+    		, T_${ITEM}.unusual_content			UNUSUAL_CONTENT_${ITEM}
+			, T_${ITEM}.confirm_content			CONFIRM_CONTENT_${ITEM}
+    	</foreach>
+		FROM
+			(
+				SELECT
+					ww_date
+				FROM
+					wb_oper_result
+				WHERE
+					ww_date BETWEEN #{FROM_DATE} AND #{TO_DATE}
+				GROUP BY
+					ww_date
+			) WB
+		<foreach collection="ITEMS" item="ITEM">      	    	
+		    LEFT OUTER JOIN wb_oper_result T_${ITEM} ON T_${ITEM}.ww_code = #{ITEM} AND WB.ww_date = T_${ITEM}.ww_date
+    	</foreach>
+		ORDER BY
+			WB.ww_date
+    </select>
+</mapper>

@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.MANUAL_SEARCH_ETC">
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 취정수수질검사결과 - 정수센터 -->
+    <select id='selectLabInOutResultPlantDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	WLI.item_code					ITEM_CODE
+        	, WLI.item_kname				ITEM_KNAME
+        	, WLI.check_cycle				CHECK_CYCLE
+        	, WLI.output_order				OUTPUT_ORDER
+			, (
+				select 
+					max(data_val) 
+				from 
+					wb_data_lab 
+				where 
+					WDL.item_code = item_code
+					AND ww_code = #{WW_CODE}
+					AND anal_date between #{FROM_DATE} AND #{TO_DATE}   
+			) MAX_1
+			, (
+				select 
+					min(data_val) 
+				from 
+					wb_data_lab 
+				where
+					WDL.item_code = item_code
+					AND ww_code = #{WW_CODE}
+					AND anal_date between #{FROM_DATE} AND #{TO_DATE} 
+			) MIN_1
+			, (
+				select 
+					avg(data_val) 
+				from 
+					wb_data_lab 
+				where
+					WDL.item_code = item_code
+					AND ww_code = #{WW_CODE}  
+					AND anal_date between #{FROM_DATE} AND #{TO_DATE}  
+			) AVG_1
+			<foreach collection="ITEM_DATAS" item="ITEM_DATA">
+    			, MAX(CASE anal_date WHEN #{WORK_DATE} || #{ITEM_DATA} THEN data_val WHEN '' THEN null ELSE null END) DATA_${ITEM_DATA}
+    		</foreach>	
+		FROM
+			wb_lab_item WLI
+			LEFT OUTER JOIN wb_data_lab WDL on WDL.item_code = WLI.item_code
+				AND WDL.ww_code = #{WW_CODE}
+				AND WDL.water_type = #{WATER_TYPE}
+		WHERE
+			WLI.ww_type = #{WW_TYPE}
+			AND WLI.water_type in ('A', #{WATER_TYPE})
+		<if test='WW_CODE_OP != ""'>
+	    	AND WDL.unit = #{WW_CODE_OP}
+		</if>
+		GROUP BY
+			WLI.item_kname
+			, WLI.item_code
+			, WDL.item_code
+			, WLI.check_cycle
+			, WLI.output_order
+		ORDER BY
+			WLI.check_cycle
+			, WLI.output_order
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 취정수수질검사결과 - 상수도연구원 - 개별항목 -->
+    <select id='selectLabInOutResultWaterDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	pr0055				PR0055
+        	, pr0065			PR0065
+        	, pr0183			PR0183
+        	, pr0370			PR0370
+        	, pr0407			PR0407
+        	, pr0710			PR0710
+        	, anal_date			ANAL_DATE
+        	, data_year			DATA_YEAR
+        	, data_month		DATA_MONTH
+        	, data_day			DATA_DAY
+        	
+			, (select max(pr0055) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0055
+			, (select max(pr0065) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0065
+			, (select max(pr0183) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0183
+			, (select max(pr0370) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0370
+			, (select max(pr0407) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0407
+			, (select max(pr0710) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MAX_0710	
+		
+			, (select min(pr0055) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0055
+			, (select min(pr0065) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0065
+			, (select min(pr0183) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0183
+			, (select min(pr0370) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0370
+			, (select min(pr0407) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0407
+			, (select min(pr0710) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) MIN_0710	
+		
+			, (select avg(pr0055) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0055
+			, (select avg(pr0065) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0065
+			, (select avg(pr0183) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0183
+			, (select avg(pr0370) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0370
+			, (select avg(pr0407) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0407
+			, (select avg(pr0710) from wb_data_lab_wo where item_code = WDLW.item_code AND data_year = #{WORK_DATE}) AVG_0710
+	 FROM
+	 	wb_data_lab_wo WDLW
+	 WHERE
+	 	item_code = #{ITEM_CODE}
+	 	AND water_type = #{WATER_TYPE}
+	 ORDER BY
+	 	data_month
+	 	, data_day
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 취정수수질검사결과 - 상수도연구원 - 전체항목 - 원수 -->
+    <select id='selectLabInOutResultWaterAllInDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	WLI.item_kname				ITEM_KNAME
+        	, WLI.check_cycle			CHECK_CYCLE
+        	, (
+        		CASE WLI.check_cycle 
+        			WHEN '1' THEN '일간' 
+        			WHEN '2' THEN '주간' 
+        			WHEN '3' THEN '월간'
+        			WHEN '4' THEN '분기'
+       				ELSE '' 
+  				END
+  			) 							CHECK_CYCLE_TEXT
+        	, WLI.output_order 			OUTPUT_ORDER
+			, WDL.pr0055				PR0055
+			, WDL.pr0065				PR0065
+			, WDL.pr0183				PR0183
+			, WDL.pr0407				PR0407
+			, WDL.pr0370				PR0370
+			, WDL.pr0710				PR710
+			, WLIS.env_high				ENV_HIGH
+			, WLIS.env_low				ENV_LOW
+			, WLIS.eat_high				EAT_HIGH
+			, WLIS.eat_low				EAT_LOW
+	 	FROM
+	 		wb_lab_item_standard WLIS
+	 		, wb_lab_item WLI 
+	 		LEFT OUTER JOIN wb_data_lab_wo WDL on  WDL.item_code = WLI.item_code
+	 			AND WDL.water_type = #{WATER_TYPE}
+	 			AND WLI.water_type in ('A', #{WATER_TYPE})
+	 			AND WDL.data_year = #{DATA_YEAR}
+	 			AND WDL.data_month =  #{DATA_MONTH}
+	 	WHERE
+	 		WLI.item_code = WLIS.item_code
+	 		AND WLI.ww_type = #{WW_TYPE}
+	 		<if test='ITEM_KIND == "item_23"'>
+	 		    AND WLI.item_23 = 'Y'
+	 		</if>
+	 		<if test='ITEM_KIND == "item_47"'>
+	 		    AND WLI.item_47 = 'Y'
+	 		</if>
+	 		<if test='ITEM_KIND == "item_55"'>
+	 		    AND WLI.item_55 = 'Y'
+	 		</if>
+		GROUP BY
+			WLI.item_kname
+			, WLI.check_cycle
+			, WDL.pr0055
+			, WDL.pr0065
+			, WDL.pr0183
+			, WDL.pr0407
+			, WDL.pr0370
+			, WDL.pr0710
+			, WLIS.env_high
+			, WLIS.env_low
+			, WLIS.eat_high
+			, WLIS.eat_low
+			, WLI.output_order
+		ORDER BY
+			WLI.check_cycle
+			, WLI.output_order
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 취정수수질검사결과 - 상수도연구원 - 전체항목 - 정수 -->
+    <select id='selectLabInOutResultWaterAllOutDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	WLI.item_kname				ITEM_KNAME
+        	, WLI.check_cycle			CHECK_CYCLE
+        	, (
+        		CASE WLI.check_cycle 
+        			WHEN '1' THEN '일간' 
+        			WHEN '2' THEN '주간' 
+        			WHEN '3' THEN '월간'
+        			WHEN '4' THEN '분기'
+       				ELSE '' 
+  				END
+  			) 							CHECK_CYCLE_TEXT
+        	, WLI.output_order 			OUTPUT_ORDER
+			, WDL.pr0055				PR0055
+			, WDL.pr0065_3				PR0055_3
+			, WDL.pr0065_4				PR0055_4
+			, WDL.pr0183_2				PR0183_2
+			, WDL.pr0183_3				PR0183_3
+			, WDL.pr0183_4				PR0183_4
+			, WDL.pr0407_1				PR0407_1
+			, WDL.pr0407_2				PR0407_2
+			, WDL.pr0407_3				PR0407_3
+			, WDL.pr0370_1				PR0370_1
+			, WDL.pr0370_2				PR0370_2
+			, WDL.pr0710				PR710
+			, WLIS.env_high				ENV_HIGH
+			, WLIS.env_low				ENV_LOW
+			, WLIS.eat_high				EAT_HIGH
+			, WLIS.eat_low				EAT_LOW
+	 	FROM
+	 		wb_lab_item_standard WLIS
+	 		, wb_lab_item WLI 
+	 		LEFT OUTER JOIN wb_data_lab_wo WDL on  WDL.item_code = WLI.item_code
+	 			AND WDL.water_type = #{WATER_TYPE}
+	 			AND WLI.water_type in ('A', #{WATER_TYPE})
+	 			AND WDL.data_year = #{DATA_YEAR}
+	 			AND WDL.data_month =  #{DATA_MONTH}
+	 	WHERE
+	 		WLI.item_code = WLIS.item_code
+	 		AND WLI.ww_type = #{WW_TYPE}
+	 		<if test='ITEM_KIND == "item_23"'>
+	 		    AND WLI.item_23 = 'Y'
+	 		</if>
+	 		<if test='ITEM_KIND == "item_47"'>
+	 		    AND WLI.item_47 = 'Y'
+	 		</if>
+	 		<if test='ITEM_KIND == "item_55"'>
+	 		    AND WLI.item_55 = 'Y'
+	 		</if>
+		GROUP BY
+			WLI.item_kname
+			, WLI.check_cycle
+			, WDL.pr0055
+			, WDL.pr0065_3
+			, WDL.pr0065_4
+			, WDL.pr0183_2
+			, WDL.pr0183_3
+			, WDL.pr0183_4
+			, WDL.pr0407_1
+			, WDL.pr0407_2
+			, WDL.pr0407_3
+			, WDL.pr0370_1
+			, WDL.pr0370_
+			, WLIS.env_high
+			, WLIS.env_low
+			, WLIS.eat_high
+			, WLIS.eat_low
+			, WLI.output_order
+		ORDER BY
+			WLI.check_cycle
+			, WLI.output_order
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수처리 기준 결과 - 측정아이템 목록 -->
+    <select id='selectLabBaselineStanrdPointValDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	T.point_code			POINT_CODE
+        	, T.point_name			POINT_NAME
+        	, T.item_code			ITEM_CODE
+        	, T.item_name			ITEM_NAME
+        	, T.item_type			ITEM_TYPE
+        	, T.unit				UNIT
+        	, WSP.writer_id			WRITE_ID
+        	, WSP.anal_date			ANAL_DATE
+        	, WSP.item_val1			ITEM_VAL1
+        	, WSP.item_val2			ITEM_VAL2
+        	, WSP.item_val3			ITEM_VAL3
+        	, WSP.remark			REMARK
+        	, WSP.tel_num 			TEL_NUM
+       	FROM (
+       		SELECT 
+       			WMP.point_code
+       			, WMP.point_name
+       			, WSI.item_code
+       			, WSI.item_name
+       			, WSI.item_type
+       			, WMP.unit 
+     		FROM
+     			wb_standard_anal_master WSA
+     			, wb_standard_item WSI
+     			, wb_manage_point WMP 
+    		WHERE
+    			WSA.item_code = WSI.item_code
+    			and WSA.point_code = WMP.point_code 
+    			and WMP.ww_code = #{WW_CODE} 
+ 		) T(point_code,point_name,item_code,item_name,item_type,unit) 
+ 			LEFT OUTER JOIN wb_standard_point_val WSP on T.point_code = WSP.point_code 
+ 				and T.item_code = WSP.item_code 
+ 				and WSP.anal_date = #{WORK_DATE} 
+		ORDER BY
+			T.item_code
+			, T.point_code
+    </select>
+</mapper>

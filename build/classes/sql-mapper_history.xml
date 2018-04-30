@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.HISTORY">
+    <!-- 수질이력정보 - 보고서 - 측정지점별 - (데이터 리스트) -->
+    <select id='selectReportPointDataList' parameterType='java.util.HashMap' resultType='java.util.HashMap'>
+        SELECT
+    		anal_date																			ANAL_DATE
+    	<foreach collection="ITEM_CODES" item="ITEM_CODE">
+    		,MAX(CASE UPPER(WDM.item_code) WHEN #{ITEM_CODE} THEN WDM.item_val ELSE NULL END)	${ITEM_CODE}	
+    	</foreach>
+    	FROM
+    		${TBL_NAME} WDM
+    	WHERE 
+    		WDM.anal_date between #{FROM_DATE} AND #{TO_DATE}
+    		AND WDM.anal_point_code = #{POINT_CODE}
+		<if test='REPORT_TYPE == "H"'>
+	   		AND UPPER(WDM.item_status) = 'OK'
+ 		</if>
+    	GROUP BY
+    		WDM.anal_date
+    	ORDER BY
+    		WDM.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 보고서 - 수계내 측정지점간 (데이터 리스트) -->
+    <select id="selectReportRangeDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	SELECT
+    		T.anal_date																				ANAL_DATE
+    	<foreach collection="POINT_CODES" item="POINT_CODE">
+    		<foreach collection="ITEM_CODES" item="ITEM_CODE">
+    		,MAX(CASE T.anal_point_code WHEN #{POINT_CODE} THEN T.${ITEM_CODE} ELSE NULL END)		${ITEM_CODE}_${POINT_CODE}	
+    		</foreach>	
+    	</foreach>
+    	FROM
+    	<if test='TBL_NAMES == null'>
+    		(
+    		SELECT
+    			anal_date
+    			,anal_point_code
+    	<foreach collection="ITEM_CODES" item="ITEM_CODE">
+    			,MAX(CASE UPPER(WDM.item_code) WHEN #{ITEM_CODE} THEN WDM.item_val ELSE NULL END)	${ITEM_CODE}	
+    	</foreach>	
+    		FROM
+    			${TBL_NAME} WDM
+    		WHERE 
+	    		WDM.anal_date &gt; #{FROM_DATE} AND WDM.anal_date &lt;= #{TO_DATE}
+	    		AND WDM.anal_point_code in
+	    <foreach collection="POINT_CODES" item="POINT_CODE" index="index" separator="," open="(" close=")">
+	    			#{POINT_CODE}
+	    </foreach> 	    		
+	    	GROUP BY
+	    		WDM.anal_date
+	    		, WDM.anal_point_code
+    		) T
+    	</if>
+    	<if test='TBL_NAMES != null'>
+    		(
+    	<foreach collection="TBL_NAMES" item="TBL_ITEMS" index="index" separator=" union " open="(" close=")">
+    			SELECT
+    				anal_date
+    				,anal_point_code
+    	<foreach collection="ITEM_CODES" item="ITEM_CODE">
+    				,MAX(CASE UPPER(WDM.item_code) WHEN #{ITEM_CODE} THEN WDM.item_val ELSE NULL END)	${ITEM_CODE}	
+    	</foreach>	
+    			FROM
+    				wb_data_minute_${TBL_ITEMS[1]} WDM
+    			WHERE 
+	    			WDM.anal_date &gt; #{FROM_DATE} AND WDM.anal_date &lt;= #{TO_DATE}
+	    			AND WDM.anal_point_code = #{TBL_ITEMS[0]} 
+	    		GROUP BY
+	    			WDM.anal_date
+	    			, WDM.anal_point_code
+    	</foreach>
+    		) T
+    	</if>
+    	GROUP BY
+    		T.anal_date
+    	ORDER BY
+    		T.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트랜드 - 측정지점별 -->
+    <select id="selectTrendPointDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+    		anal_date																			ANAL_DATE
+    	<foreach collection="ITEM_CODES" item="ITEM_CODE">
+    		,MAX(CASE UPPER(WDM.item_code) WHEN #{ITEM_CODE} THEN WDM.item_val ELSE NULL END)	${ITEM_CODE}	
+    	</foreach>
+    	FROM
+    		${TBL_NAME} WDM
+    	WHERE 
+    		WDM.anal_date &gt; #{FROM_DATE} AND WDM.anal_date &lt;= #{TO_DATE}
+    		AND WDM.anal_point_code = #{POINT_CODE}
+		<if test='REPORT_TYPE == "H"'>
+	   		AND UPPER(WDM.item_status) = 'OK'
+ 		</if>
+    	GROUP BY
+    		WDM.anal_date
+    	ORDER BY
+    		WDM.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트렌드 - 수계내 측정지점간 -->
+    <select id="selectTrendRangeDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	SELECT
+    		T.anal_date														ANAL_DATE
+    	<foreach collection="POINT_CODES" item="POINT_CODE">
+    		<foreach collection="POINT_ITEMS" item="POINT_ITEM">
+    		,MAX(CASE T.anal_point_code WHEN #{POINT_CODE} THEN T.${POINT_ITEM} ELSE NULL END)	${POINT_ITEM}_${POINT_CODE}	
+    		</foreach>	
+    	</foreach>
+    	FROM
+    	<if test='TBL_NAMES == null'>
+    		(
+    		SELECT
+    			anal_date
+    			,anal_point_code
+    	<foreach collection="POINT_ITEMS" item="POINT_ITEM">
+    			,MAX(CASE UPPER(WDM.item_code) WHEN #{POINT_ITEM} THEN WDM.item_val ELSE NULL END)	${POINT_ITEM}	
+    	</foreach>	
+    		FROM
+    			${TBL_NAME} WDM
+    		WHERE 
+	    		WDM.anal_date &gt; #{FROM_DATE} AND WDM.anal_date &lt;= #{TO_DATE}
+	    		AND WDM.anal_point_code in
+	    <foreach collection="POINT_CODES" item="POINT_CODE" index="index" separator="," open="(" close=")">
+	    			#{POINT_CODE}
+	    </foreach> 	    		
+	    	GROUP BY
+	    		WDM.anal_date
+	    		, WDM.anal_point_code
+    		) T
+    	</if>
+    	<if test='TBL_NAMES != null'>
+    		(
+    		<foreach collection="TBL_NAMES" item="TBL_ITEM" index="index" separator=" union " open="(" close=")">
+    			SELECT
+    				anal_date
+    				,anal_point_code
+    			<foreach collection="POINT_ITEMS" item="POINT_ITEM">
+    				,MAX(CASE UPPER(WDM.item_code) WHEN #{POINT_ITEM} THEN WDM.item_val ELSE NULL END)	${POINT_ITEM}	
+    			</foreach>	
+    			FROM
+    				wb_data_minute_${TBL_ITEM[1]} WDM
+    			WHERE 
+	    			WDM.anal_date &gt; #{FROM_DATE} AND WDM.anal_date &lt;= #{TO_DATE}
+	    			AND WDM.anal_point_code = #{TBL_ITEM[0]}
+	    		GROUP BY
+	    			WDM.anal_date
+	    			, WDM.anal_point_code
+	    	</foreach>
+    		) T    		
+    	</if>
+    	GROUP BY
+    		T.anal_date
+    	ORDER BY
+    		T.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트렌드 - 정수센터간(시보) -->
+    <select id="selectTrendPlantHourDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	*
+        FROM
+        <foreach collection="WW_CODES" item="WW_CODE" index="index" separator="," open="" close="">
+            (
+            SELECT
+            	anal_date						ANAL_DATE
+            	,AVG(item_val) 					${ANAL_ITEM}_${WW_CODE}
+            FROM
+            	wb_data_minute_${WW_CODE} WDM
+	    		,wb_anal_point WAP
+	    	WHERE 
+    			WAP.anal_point_code = WDM.anal_point_code
+    			AND WDM.anal_date between #{FROM_DATE} AND #{TO_DATE}
+    			AND WAP.point_class_code = #{POINT_CLASS_CODE}
+    			AND WDM.item_code = #{ANAL_ITEM}
+    		GROUP BY
+    			WDM.anal_date
+            ) T_${index} (ANAL_DATE, ${ANAL_ITEM}_${WW_CODE})
+        </foreach>
+        WHERE
+        	1 = 1
+        <foreach collection="WW_CODES" item="WW_CODE_1" index="index_1" separator="" open="" close="">
+            <foreach collection="WW_CODES" item="WW_CODE_2" index="index_2" separator="" open="" close="">
+                <if test='index_1 &lt; index_2'>
+                    AND T_${index_1}.anal_date = T_${index_2}.anal_date
+                </if>
+        	</foreach>
+        </foreach>
+        ORDER BY
+        	T_0.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트렌드 - 정수센터간(기간/일보/월보/년보) -->
+    <select id="selectTrendPlantDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+    		anal_date																		ANAL_DATE
+    	<foreach collection="WW_CODES" item="WW_CODE">
+    	    ,MAX(CASE UPPER(WAP.ww_code) WHEN #{WW_CODE} THEN item_val ELSE null END ) 		${ANAL_ITEM}_${WW_CODE}	
+    	</foreach>
+    	FROM
+    		${TBL_NAME} WDM
+    		, wb_anal_point WAP
+    	WHERE 
+    		WAP.anal_point_code = WDM.anal_point_code
+    		AND WDM.anal_date between #{FROM_DATE} AND #{TO_DATE}
+    		AND WAP.point_class_code = #{POINT_CLASS_CODE}
+    		AND WDM.item_code = #{ANAL_ITEM}
+    	GROUP BY
+    		WDM.anal_date
+    	ORDER BY
+    		WDM.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트렌드 - 정수처리공정간 -->
+    <select id="selectTrendProcessDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	SELECT
+    		anal_date																						ANAL_DATE
+    	<foreach collection="POINT_CLASS_CODES" item="POINT_CLASS_CODE">
+    	    ,MAX(CASE UPPER(WAP.point_class_code) WHEN #{POINT_CLASS_CODE} THEN item_val ELSE null END ) 	${ANAL_ITEM}_${POINT_CLASS_CODE}	
+    	</foreach>
+    	FROM
+    		${TBL_NAME} WDM
+    		, wb_anal_point WAP
+    	WHERE
+    		WAP.anal_point_code = WDM.anal_point_code 
+    		AND WDM.anal_date between #{FROM_DATE} AND #{TO_DATE}
+    		AND WAP.ww_code = #{WW_CODE}
+    		AND item_code = #{ANAL_ITEM}
+    	GROUP BY
+    		WDM.anal_date
+    	ORDER BY
+    		WDM.anal_date
+    </select>
+    
+    <!-- 수질이력정보 - 트렌드 - 공급과정간 (일보) -->
+    <select id="selectTrendProviderHourDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	SELECT
+    		T.anal_date																					ANAL_DATE
+    	<foreach collection="WW_POINT_CODES" item="WW_POINT_CODE">
+    	    ,MAX(CASE UPPER(T.anal_point_code) WHEN #{WW_POINT_CODE[1]} THEN item_val ELSE null END )	${ANAL_ITEM}_${WW_POINT_CODE[0]}_${WW_POINT_CODE[1]}
+    	</foreach>
+    	FROM
+    		(
+    	<foreach collection="WW_POINT_CODES" item="WW_POINT_CODE" index="index" separator=" union " open="" close="">
+    	    (
+    	    	SELECT
+    	    		distinct item_val
+    	    		,item_code
+    	    		,anal_point_code
+    	    		,anal_date
+    	    	FROM
+    	    		${TBL_NAME}_${WW_POINT_CODE[0]}
+    			WHERE
+    				anal_date between #{FROM_DATE} AND #{TO_DATE}
+    				AND anal_point_code = #{WW_POINT_CODE[1]}
+    				AND item_code = #{ANAL_ITEM}
+    	    )
+    	</foreach>
+    		) T (item_val, item_code, anal_point_code, anal_date)
+    	GROUP BY
+    		T.anal_date
+    	ORDER BY
+    		T.anal_date
+    </select> 
+    
+    <!-- 수질이력정보 - 트렌드 - 공급과정간 (기간/일보/월보/년보) -->
+    <select id="selectTrendProviderDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	SELECT
+    		anal_date																					ANAL_DATE
+    	<foreach collection="WW_POINT_CODES" item="WW_POINT_CODE">
+    	    ,MAX(CASE UPPER(anal_point_code) WHEN #{WW_POINT_CODE[1]} THEN item_val ELSE null END )		${ANAL_ITEM}_${WW_POINT_CODE[0]}_${WW_POINT_CODE[1]}
+    	</foreach>
+    	FROM
+    		${TBL_NAME}
+    	WHERE
+    		anal_date between #{FROM_DATE} AND #{TO_DATE}
+    		AND anal_point_code in
+    	<foreach collection="WW_POINT_CODES" item="WW_POINT_CODE" index="index" separator="," open="(" close=")">
+    	    #{WW_POINT_CODE[1]}
+	    </foreach>
+    		AND item_code = #{ANAL_ITEM}
+    	GROUP BY
+    		anal_date
+    	ORDER BY
+    		anal_date
+    </select>   
+    
+    <!-- 수질이력정보 - 경보이력 - 정수센터 -->
+    <select id="selectAlertHistoryPlantDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+    		WW.ww_name									WW_NAME
+    		,WAP.anal_point_name						POINT_NAME
+    		,WA.start_item_val							START_ITEM_VAL
+    		,(CASE WA.alarm_type 
+    			WHEN '1' THEN '기준치초과' 
+    			WHEN '2' THEN '측정상태이상' 
+    			WHEN '3' THEN '전송상태이상' 
+    			ELSE '' 
+   			END) 										ALARM_TYPE
+			,WIS.highhigh								HIGH_HIGH
+			,WIS.lowlow									LOW_LOW
+			,WA.start_date								START_DATE
+			,WAI.anal_item_name							ITEM_NAME
+			,WAI.anal_unit								ITEM_UNIT
+			,(CASE WAP.factory_code 
+				WHEN '9' THEN 'N/A' 
+				WHEN '0' THEN '공통' 
+				WHEN '1' THEN '1정수장' 
+				WHEN '2' THEN '2정수장' 
+				WHEN '3' THEN '3정수장' 
+				WHEN '4' THEN '정수장_암사' 
+				WHEN '5' THEN '정수장_강북'
+				WHEN '6' THEN '정수장_자양'
+				WHEN '7' THEN '정수장_팔당'
+ 		     	WHEN '8' THEN '정수장_풍납'
+				ELSE '' 
+			END) 										FACTORY_NAME
+		FROM
+			wb_alarmhist WA
+			,wb_item_standard_1 WIS
+			,wb_wellwater WW
+			,wb_anal_point WAP
+			,wb_anal_item WAI
+			,wb_point_class WPC
+		WHERE		  
+			WA.item_code = WIS.item_code
+			AND WA.item_code = WAI.item_code
+			AND WAP.anal_point_code = WA.anal_point_code
+			AND WAP.ww_code = WW.ww_code
+			AND WAP.point_class_code = WIS.point_class
+			AND WAP.point_class_code = WPC.type_code
+			AND WAP.anal_point_code = #{POINT_CODE}
+			AND WA.start_date between #{FROM_DATE} AND #{TO_DATE} 
+		ORDER BY 
+			WA.start_date
+    </select>
+    
+    <!-- 수질이력정보 - 경보이력 - 수도사업소 -->
+    <select id="selectAlertHistoryWaterDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        	SELECT 
+    		WW.ww_name									WW_NAME
+    		,WAP.anal_point_name						POINT_NAME
+    		,WA.start_item_val							START_ITEM_VAL
+    		,(CASE WA.alarm_type 
+    			WHEN '1' THEN '기준치초과' 
+    			WHEN '2' THEN '측정상태이상' 
+    			WHEN '3' THEN '전송상태이상' 
+    			ELSE '' 
+   			END) 										ALARM_TYPE
+			,WIS.highhigh								HIGH_HIGH
+			,WIS.lowlow									LOW_LOW
+			,WA.start_date								START_DATE
+			,WAI.anal_item_name							ITEM_NAME
+			,WAI.anal_unit								ITEM_UNIT
+			,SUBSTRING(WPC.type_name FROM 0 FOR 2)		FACTORY_NAME
+		FROM
+			wb_alarmhist WA
+			,wb_item_standard_1 WIS
+			,wb_wellwater WW
+			,wb_anal_point WAP
+			,wb_anal_item WAI
+			,wb_point_class WPC
+		WHERE		  
+			WA.item_code = WIS.item_code
+			AND WA.item_code = WAI.item_code
+			AND WAP.anal_point_code = WA.anal_point_code
+			AND WAP.ww_code = WW.ww_code
+			AND WAP.point_class_code = WIS.point_class
+			AND WAP.point_class_code = WPC.type_code
+			AND WAP.anal_point_code = #{POINT_CODE}
+			AND WA.start_date between #{FROM_DATE} AND #{TO_DATE} 
+		ORDER BY 
+			WA.start_date
+    </select>
+</mapper>

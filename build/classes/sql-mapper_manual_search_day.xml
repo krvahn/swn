@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="sql.MANUAL_SEARCH_DAY">
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 수질현황 -->
+    <select id="selectLabDayOpWaterDataList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	*
+        FROM        
+        (
+        	SELECT
+        		1																				TMP
+        		,WD.anal_date																	P_ANAL_DATE
+        <!-- 전일 생산량 -->
+      	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.prod_water ELSE null END)		P_${SEARCH_ITEM}_PROD	
+    	</foreach>
+    	<!-- 전일 가동율 -->
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.drive_rate ELSE null END)		P_${SEARCH_ITEM}_DRIVE	
+    	</foreach>
+    	<!-- 전일 취수량 -->
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.take_water ELSE null END)		P_${SEARCH_ITEM}_TAKE_WATER	
+    	</foreach>
+    		FROM
+    			wb_dummy_date WD
+    			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+    		WHERE
+    			WD.anal_date = #{LAST_DATE}
+    		GROUP BY
+    			WD.anal_date
+        ) as T1
+        LEFT OUTER JOIN
+        (
+        	SELECT
+        		1																				TMP
+        		,WD.anal_date																	C_ANAL_DATE
+      	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.prod_water ELSE null END)		C_${SEARCH_ITEM}_PROD	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.drive_rate ELSE null END)		C_${SEARCH_ITEM}_DRIVE	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.take_water ELSE null END)		C_${SEARCH_ITEM}_TAKE_WATER	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN TO_NUMBER(TRUNC(CAST(filter_time AS FLOAT),0)) ELSE null END)		C_${SEARCH_ITEM}_FILTER_TIME</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.pac ELSE null END)				C_${SEARCH_ITEM}_PAC	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.pacs ELSE null END)			C_${SEARCH_ITEM}_PACS	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.pahcs ELSE null END)			C_${SEARCH_ITEM}_PAHCS	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.cd00 ELSE null END)			C_${SEARCH_ITEM}_CD00	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.al_ga ELSE null END)			C_${SEARCH_ITEM}_AL_GA	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.al_so ELSE null END)			C_${SEARCH_ITEM}_AL_SO	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.front ELSE null END)			C_${SEARCH_ITEM}_FRONT	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.rear ELSE null END)			C_${SEARCH_ITEM}_REAR	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.powder ELSE null END)			C_${SEARCH_ITEM}_POWDER	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.temp_min ELSE null END)		C_${SEARCH_ITEM}_TEMP_MIN	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.temp_max ELSE null END)		C_${SEARCH_ITEM}_TEMP_MAX	
+    	</foreach>
+    	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    			,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.discharge ELSE null END)		C_${SEARCH_ITEM}_DISCHARGE	
+    	</foreach>
+    		FROM
+    			wb_dummy_date WD
+    			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+    		WHERE
+    			WD.anal_date = #{THIS_DATE}
+    		GROUP BY
+    			WD.anal_date
+        ) as T2
+        ON T1.TMP = T2.TMP        
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 수질현황 -->
+    <select id="selectLabDayOpWaterDataList2" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	(CASE WHEN WM.anal_date IS NOT NULL THEN WM.anal_date ELSE null END) 			ANAL_DATE
+        	,item_name																		ITEM_NAME
+        	,water_type																		WATER_TYPE
+        	,output_order																	OUTPUT_ORDER
+        	,(CASE WHEN MAX(low) IS NOT NULL THEN MAX(low) ELSE null END) 					LOW
+        	,(CASE WHEN MAX(high) IS NOT NULL THEN MAX(high) ELSE null END) 				HIGH
+        	,(CASE water_type 
+        		WHEN 'O' THEN '원수' 
+        		WHEN 'P' then '정수' 
+        		WHEN 'T' then '조류수' 
+        		ELSE '' 
+        	END)																			WATER_TEXT
+      	<foreach collection="SEARCH_ITEMS" item="SEARCH_ITEM">      	    	
+    		,MAX(CASE WM.ww_code WHEN #{SEARCH_ITEM} THEN WM.item_val1 ELSE null END)		C_${SEARCH_ITEM}	
+    	</foreach>
+       	FROM
+       		wb_manage_item WMI 
+       		LEFT OUTER JOIN wb_manage_point_val WM ON WMI.seq = WM.item_seq 
+       		AND anal_date = #{THIS_DATE}
+       	GROUP BY
+       		anal_date 
+       		,item_name 
+       		,water_type ,output_order 
+       	ORDER BY
+       		WMI.output_order
+       		, water_type
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 송수현황 -->
+    <select id='selectLabDayOpSendDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+			T.ww_code					WW_CODE
+			, T.unit					UNIT
+			, T.point_code				POINT_CODE
+			, T.point_name				POINT_NAME
+			, T.t_supp					T_SUPP
+			, T.t_press					T_PRESS
+			, T.t_press_max				T_PRESS_MAX
+			, T.t_press_min				T_PRESS_MIN			
+			, T.t_pump_cnt				T_PUMP_CNT
+			, T.t_pump_time				T_PUMP_TIME
+			, T.equip_qty				EQUIP_QTY
+			, L.l_supp					L_SUPP
+			, L.l_press 				L_PRESS
+		FROM 
+			(
+				SELECT 
+					WMP.ww_code
+					, WMP.unit
+					, WMP.point_code
+					, WMP.point_name
+					, WMP.equip_qty
+					, MAX(CASE WM.item_type WHEN 'P' THEN WM.item_val1 ELSE '' END) t_supp
+					, MAX(CASE WM.item_type WHEN 'R' THEN WM.item_val1 ELSE '' END) t_press
+					, MAX(CASE WM.item_type WHEN 'R' THEN WM.item_val2 ELSE '' END) t_press_max
+					, MIN(CASE WM.item_type WHEN 'R' THEN WM.item_val3 ELSE '' END) t_press_min
+					, MAX(CASE WM.item_type WHEN 'A' THEN WM.item_val2 ELSE '' END) t_pump_cnt
+					, MAX(CASE WM.item_type WHEN 'A' THEN WM.item_val3 ELSE '' END) t_pump_time
+				FROM
+					wb_manage_point wmp 
+					LEFT OUTER JOIN 
+					wb_manage_point_val wm 
+					ON wmp.point_code = wm.point_code AND wm.anal_date = #{WORK_DATE} 
+				WHERE
+					point_type='S' 
+				GROUP BY 
+					WMP.ww_code
+					, WMP.unit
+					, WMP.point_code
+					, WMP.point_name
+					, WMP.equip_qty
+			) T(ww_code, unit, point_code, point_name, equip_qty, t_supp, t_press, t_press_min, t_press_max, t_pump_cnt, t_pump_time), 
+			(
+				SELECT 
+					WMP.ww_code
+					, WMP.unit
+					, WMP.point_code
+					, WMP.point_name
+					, MAX(CASE WM.item_type WHEN 'P' THEN WM.item_val1 ELSE '' END) l_supp
+					, MAX(CASE WM.item_type WHEN 'R' THEN WM.item_val1 ELSE '' END) l_press 
+				FROM 
+					wb_manage_point wmp 
+					LEFT OUTER JOIN
+					wb_manage_point_val wm 
+					ON wmp.point_code = wm.point_code AND wm.anal_date = #{PREV_DATE} 
+				WHERE 
+					point_type='S' 
+				GROUP BY 
+					WMP.ww_code
+					, WMP.unit
+					, WMP.point_code
+					, WMP.point_name
+			) L(ww_code, unit, point_code, point_name,l_supp,l_press) 
+		WHERE 
+			T.ww_code = L.ww_code 
+			AND T.point_code = L.point_code
+		ORDER BY
+			T.ww_code
+			, T.point_code
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 송수현황 - 측정지점 정보 -->
+    <select id='selectLabDayOpSendPointDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+			item_val1			ITEM_VAL1
+			, item_val2			ITEM_VAL2
+		FROM 
+			wb_other_val 
+		WHERE
+			ww_code = #{WW_CODE}  
+			AND point_code = #{POINT_CODE} 
+			AND anal_date = #{WORK_DATE}
+			AND order_num &lt;= (SELECT cnt from wb_point_cnt WHERE point_code = #{POINT_CODE})
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 일일생산량보고 -->
+    <select id='selectLabDayOpProdDayDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	T.ytemp_max				YTEMP_MAX
+        	, T.ytemp_min			YTEMP_MIN
+			, T.ypr0055_prod		YPR0055_PROD
+			, T.ypr0065_prod		YPR0065_PROD
+			, T.ypr0183_prod		YPR0183_PROD
+			, T.ypr0407_prod		YPR0407_PROD
+			, T.ypr0370_prod		YPR0370_PROD
+			, T.ypr0710_prod		YPR0710_PROD
+			, V.mpr0055_prod		MPR0055_PROD
+			, V.mpr0065_prod		MPR0065_PROD
+			, V.mpr0183_prod		MPR0183_PROD
+			, V.mpr0407_prod		MPR0407_PROD
+			, V.mpr0370_prod		MPR0370_PROD
+			, V.mpr0710_prod		MPR0710_PROD
+			, V.mtemp_max			MTEMP_MAX
+			, V.mtemp_min			MTEMP_MIN
+		 FROM 
+		 (
+		 	SELECT 
+		 		AVG(temp_max) ytemp_max
+		 		, AVG(temp_min) ytemp_min 
+				, AVG(CASE WM.ww_code WHEN 'PR0055' THEN WM.prod_water ELSE 0 END ) ypr0055_prod 
+				, AVG(CASE WM.ww_code WHEN 'PR0065' THEN WM.prod_water ELSE 0 END ) ypr0065_prod 
+				, AVG(CASE WM.ww_code WHEN 'PR0183' THEN WM.prod_water ELSE 0 END ) ypr0183_prod 
+				, AVG(CASE WM.ww_code WHEN 'PR0407' THEN WM.prod_water ELSE 0 END ) ypr0407_prod 
+				, AVG(CASE WM.ww_code WHEN 'PR0370' THEN WM.prod_water ELSE 0 END ) ypr0370_prod 
+				, AVG(CASE WM.ww_code WHEN 'PR0710' THEN WM.prod_water ELSE 0 END ) ypr0710_prod 
+		 	FROM 
+		 		wb_manage_val WM 
+	 		WHERE 
+	 			WM.anal_date BETWEEN #{TOP_LAST_FROM_YEAR} and #{TOP_LAST_TO_YEAR}
+	 	) T(ytemp_max,ytemp_min,ypr0055_prod,ypr0065_prod,ypr0183_prod, ypr0407_prod,ypr0370_prod,ypr0710_prod) 
+		, (
+			SELECT
+				avg(temp_max) mtemp_max
+				, avg(temp_min) mtemp_min 
+				, avg(case WM.ww_code when 'PR0055' then WM.prod_water ELSE 0 END ) mpr0055_prod
+				, avg(case WM.ww_code when 'PR0065' then WM.prod_water ELSE 0 END ) mpr0065_prod
+				, avg(case WM.ww_code when 'PR0183' then WM.prod_water ELSE 0 END ) mpr0183_prod 
+				, avg(case WM.ww_code when 'PR0407' then WM.prod_water ELSE 0 END ) mpr0407_prod 
+				, avg(case WM.ww_code when 'PR0370' then WM.prod_water ELSE 0 END ) mpr0370_prod 
+				, avg(case WM.ww_code when 'PR0710' then WM.prod_water ELSE 0 END ) mpr0710_prod 
+		 	FROM 
+		 		wb_manage_val WM 
+		 	WHERE 
+		 		WM.anal_date between #{TOP_LAST_FROM_MONTH} and #{TOP_LAST_TO_MONTH}
+		 ) V(mtemp_max,mtemp_min,mpr0055_prod,mpr0065_prod,mpr0183_prod, mpr0407_prod,mpr0370_prod,mpr0710_prod)
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 일일생산량보고 -->
+    <select id='selectLabDayOpProdDayDataList2' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	T.anal_date 														ANAL_DATE1
+        	, (case when T.temp_max is not null then T.temp_max else 0 end) 	TEMP_MAX1
+			, (case when T.temp_min is not null then T.temp_min else 0 end) 	TEMP_MIn1
+			, T.pr0055_prod														PR0055_PROD1
+			, T.pr0065_prod														PR0065_PROD1
+			, T.pr0183_prod														PR0183_PROD1
+			, T.pr0407_prod														PR0407_PROD1
+			, T.pr0370_prod														PR0370_PROD1
+			, T.pr0710_prod														PR0701_PROD1
+			, V.anal_date														ANAL_DATE2
+			, (case when V.temp_max is not null then V.temp_max else 0 end) 	TEMP_MAX2
+			, (case when V.temp_min is not null then V.temp_min else 0 end) 	TEMP_MIn2
+			, V.pr0055_prod														PR0055_PROD2
+			, V.pr0065_prod														PR0065_PROD2
+			, V.pr0183_prod														PR0183_PROD2
+			, V.pr0407_prod														PR0407_PROD2
+			, V.pr0370_prod														PR0370_PROD2
+			, V.pr0710_prod														PR0701_PROD2
+		 FROM 
+		 (
+		 	SELECT
+		 		anal_date 
+		 		, MAX(temp_max) temp_max
+		 		, MAX(temp_min) temp_min 
+				, MAX(CASE WM.ww_code WHEN 'PR0055' THEN WM.prod_water ELSE 0 END ) pr0055_prod 
+				, MAX(CASE WM.ww_code WHEN 'PR0065' THEN WM.prod_water ELSE 0 END ) pr0065_prod 
+				, MAX(CASE WM.ww_code WHEN 'PR0183' THEN WM.prod_water ELSE 0 END ) pr0183_prod 
+				, MAX(CASE WM.ww_code WHEN 'PR0407' THEN WM.prod_water ELSE 0 END ) pr0407_prod 
+				, MAX(CASE WM.ww_code WHEN 'PR0370' THEN WM.prod_water ELSE 0 END ) pr0370_prod 
+				, MAX(CASE WM.ww_code WHEN 'PR0710' THEN WM.prod_water ELSE 0 END ) pr0710_prod 
+		 	FROM 
+		 		wb_manage_val WM 
+	 		WHERE 
+	 			WM.anal_date = #{PREV_DATE}
+	 		GROUP BY
+	 			WM.anal_date
+	 	) T(anal_date,temp_max,temp_min,pr0055_prod,pr0065_prod,pr0183_prod,pr0407_prod,pr0370_prod,pr0710_prod) 
+		, (
+			SELECT
+				anal_date
+				, MAX(temp_max) temp_max
+				, MAX(temp_min) temp_min 
+				, MAX(case WM.ww_code when 'PR0055' then WM.prod_water ELSE 0 END ) pr0055_prod
+				, MAX(case WM.ww_code when 'PR0065' then WM.prod_water ELSE 0 END ) pr0065_prod
+				, MAX(case WM.ww_code when 'PR0183' then WM.prod_water ELSE 0 END ) pr0183_prod 
+				, MAX(case WM.ww_code when 'PR0407' then WM.prod_water ELSE 0 END ) pr0407_prod 
+				, MAX(case WM.ww_code when 'PR0370' then WM.prod_water ELSE 0 END ) pr0370_prod 
+				, MAX(case WM.ww_code when 'PR0710' then WM.prod_water ELSE 0 END ) pr0710_prod 
+		 	FROM 
+		 		wb_manage_val WM 
+		 	WHERE 
+		 		WM.anal_date  = #{WORK_DATE}
+		 	GROUP BY
+	 			WM.anal_date
+		 ) V(anal_date,temp_max,temp_min,pr0055_prod,pr0065_prod,pr0183_prod,pr0407_prod,pr0370_prod,pr0710_prod)
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 년도별 일일 생산량 현황 -->
+    <select id='selectLabDayOpProdYearDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT
+        	T.this_sum																		THIS_SUM
+        	, T.this_avg																	THIS_AVG
+        	, L.last_sum																	LAST_SUM
+        	, L.last_avg																	LAST_AVG
+			, F.far_sum																		FAR_SUM
+			, F.far_avg																		FAR_AVG
+			, (L.last_sum-(CASE WHEN F.far_sum is not null THEN F.far_sum else 0 end)) 		LF_SUM
+			,(T.this_sum-(CASE WHEN L.last_sum is not null THEN L.last_sum else 0 end)) 	TL_SUM
+			,(L.last_avg-(CASE WHEN F.far_avg is not null THEN F.far_avg else 0 end)) 		LF_AVG
+			,(T.this_avg-(CASE WHEN L.last_avg is not null THEN L.last_avg else 0 end)) 	TL_AVG
+		FROM
+			(
+				SELECT
+					SUM(prod_water) this_sum
+					, AVG(prod_water) this_avg
+				FROM
+					wb_manage_val
+				WHERE
+					anal_date BETWEEN #{THIS_FROM_DATE} AND #{THIS_TO_DATE}
+			) T(this_sum, this_avg)
+			, (
+				SELECT
+					SUM(prod_water) last_sum
+					, AVG(prod_water) last_avg
+				FROM 
+					wb_manage_val
+				WHERE 
+					anal_date BETWEEN #{PREV_FROM_DATE} AND #{PREV_TO_DATE}
+			) L(last_sum, last_avg)
+			, (
+				SELECT 
+					SUM(prod_water) far_sum
+					, AVG(prod_water) far_avg
+				FROM
+					wb_manage_val
+				WHERE
+					anal_date BETWEEN #{FAT_FROM_DATE} AND #{FAT_TO_DATE}
+			) F(far_sum, far_avg)
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 년도별 일일 생산량 현황 -->
+    <select id='selectLabDayOpProdYearDataList2' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT 
+        	T.anal_date1			ANAL_DATE1
+        	, T.anal_week1			ANAL_WEEK1
+        	, T.temp_max1			TEMP_MAX1
+        	, T.temp_min1			TEMP_MIN1
+        	, T.prod_water1			PROD_WATER1
+			, V.anal_date2			ANAL_DATE2
+			, V.anal_week2			ANAL_WEEK2
+			, V.temp_max2			TEMP_MAX2
+			, V.temp_min2			TEMP_MIN2
+			, V.prod_water2			PROD_WATER2
+			, (V.prod_water2 - T.prod_water1) 			PROD_WATER4
+			, (T.prod_water1 - (CASE WHEN V.prod_water2 is not null THEN V.prod_water2 ELSE 0 END))		PROD_WATER5
+		 FROM
+		 	(
+		 		SELECT
+		 			SUBSTRING(WD.anal_date FROM 7 for 7) anal_date3
+		 			, SUM(prod_water) pro_water3
+		 		FROM
+		 			wb_dummy_date WD
+		 			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+		 		WHERE
+		 			WD.anal_date BETWEEN #{FAR_FROM_DATE} AND #{FAR_TO_DATE}
+		 		GROUP BY 
+	 				WD.anal_date
+			) C (anal_date3,prod_water3)
+			, (
+				SELECT 
+					SUBSTRING(WD.anal_date FROM 7 for 7) anal_date2
+					, TO_CHAR(to_date(#{THIS_MONTH} + '/' + SUBSTRING(WD.anal_date FROM 7 for 7) + '/' + #{THIS_YEAR}),'DY') anal_week1
+					, MAX(temp_max) temp_max1
+					, MIN(temp_min) temp_min1
+					, SUM(prod_water) pro_water1
+		 		FROM  
+		 			wb_dummy_date WD 
+		 			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+		 		WHERE 
+		 			WD.anal_date BETWEEN #{THIS_FROM_DATE} AND #{THIS_TO_DATE}
+		 		GROUP BY
+		 			WD.anal_date
+		 	) T (anal_date1,anal_week1, temp_max1,temp_min1,prod_water1)
+			, (
+				SELECT 
+					SUBSTRING(WD.anal_date FROM 7 for 7) anal_date2
+					, TO_CHAR(to_date(#{PREV_MONTH} + '/' + SUBSTRING(WD.anal_date FROM 7 for 7) + '/' + #{PREV_YEAR}),'DY') anal_week2
+					, MAX(temp_max) temp_max2
+					, MIN(temp_min) temp_min2
+					, SUM(prod_water) pro_water2
+		 		FROM  
+		 			wb_dummy_date WD
+		 			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+		 		WHERE 
+		 			WD.anal_date BETWEEN #{PREV_FROM_DATE} AND #{PREV_TO_DATE}
+		 		GROUP BY
+		 			WD.anal_date
+		 	) V (anal_date2,anal_week2,temp_max2,temp_min2,prod_water2)
+		 WHERE
+		 	T.anal_date1 = V.anal_date2 
+		 	AND V.anal_date2 = C.anal_date3
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 정수장별 취수량 및 생산량 현황 -->
+    <select id='selectLabDayOpProdInOutDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT  
+        	WD.anal_date															ANAL_DATE
+        	, SUM(take_water)														TAKE_WATER
+			, SUM(prod_water) 														PROD_WATER
+			, MAX(CASE WM.ww_code WHEN 'PR0055' THEN  WM.take_water ELSE 0 END ) 	PR0055_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0055' THEN  WM.prod_water ELSE 0 END ) 	PR0055_PROD 
+			, MAX(CASE WM.ww_code WHEN 'PR0065' THEN  WM.take_water ELSE 0 END ) 	PR0065_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0065' THEN  WM.prod_water ELSE 0 END ) 	PR0065_PROD 
+			, MAX(CASE WM.ww_code WHEN 'PR0183' THEN  WM.take_water ELSE 0 END ) 	PR0183_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0183' THEN  WM.prod_water ELSE 0 END ) 	PR0183_PROD 
+			, MAX(CASE WM.ww_code WHEN 'PR0407' THEN  WM.take_water ELSE 0 END ) 	PR0407_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0407' THEN  WM.prod_water ELSE 0 END ) 	PR0407_PROD 
+			, MAX(CASE WM.ww_code WHEN 'PR0370' THEN  WM.take_water ELSE 0 END ) 	PR0370_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0370' THEN  WM.prod_water ELSE 0 END ) 	PR0370_PROD 
+			, MAX(CASE WM.ww_code WHEN 'PR0710' THEN  WM.take_water ELSE 0 END ) 	PR0710_TAKE 
+			, MAX(CASE WM.ww_code WHEN 'PR0710' THEN  WM.prod_water ELSE 0 END ) 	PR0710_PROD 
+		FROM
+			wb_dummy_date WD
+			LEFT OUTER JOIN wb_manage_val WM ON WD.anal_date = WM.anal_date
+		WHERE
+			WD.anal_date BETWEEN #{FROM_DATE} AND #{TO_DATE}
+		GROUP BY
+			WD.anal_date
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 생산량현황 - 공장별 생산량 현황 -->
+    <select id='selectLabDayOpProdFactDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT 
+			V.anal_date				ANAL_DATE
+			, V.prod_001			PROD_001
+			, V.prod_002			PROD_002
+			, V.prod_011			PROD_011
+			, V.prod_012			PROD_012
+			, V.prod_013			PROD_013
+			, V.prod_014			PROD_014
+			, V.prod_015			PROD_015
+			, V.prod_021			PROD_021
+			, V.prod_022			PROD_022
+			, V.prod_031			PROD_031
+			, V.prod_032			PROD_032
+			, V.prod_033			PROD_033
+			, V.prod_034			PROD_034
+			, V.prod_041			PROD_041
+			, V.prod_042			PROD_042
+			, V.prod_043			PROD_043
+			, V.prod_044			PROD_044
+			, V.prod_051			PROD_051
+	 		, (case when T.drive is not null then T.drive ELSE 0 END )  DRIVE
+	 		, (case when T.total_water is not null then T.total_water ELSE 0 END )  TOTAL_WATER
+	 		, (case when T.pr0055_prod is not null then T.pr0055_prod ELSE 0 END )  PR0055_PROD
+	 		, (case when T.pr0065_prod is not null then T.pr0065_prod ELSE 0 END )  PR0065_PROD
+	 		, (case when T.pr0183_prod is not null then T.pr0183_prod ELSE 0 END )  PR0183_PROD
+	 		, (case when T.pr0407_prod is not null then T.pr0407_prod ELSE 0 END )  PR0407_PROD
+	 		, (case when T.pr0370_prod is not null then T.pr0370_prod ELSE 0 END )  PR0370_PROD
+	 		, (case when T.pr0710_prod is not null then T.pr0710_prod ELSE 0 END )  PR0710_PROD
+ 		FROM
+	 		(
+	 			SELECT 
+	 				WD.anal_date anal_date1
+	 				, max(case WM.point_code when '001' then WM.item_val1 ELSE '' END ) prod_001
+	 				, max(case WM.point_code when '002' then WM.item_val1 ELSE '' END ) prod_002
+	 				, max(case WM.point_code when '011' then WM.item_val1 ELSE '' END ) prod_011
+	 				, max(case WM.point_code when '012' then WM.item_val1 ELSE '' END ) prod_012
+	 				, max(case WM.point_code when '013' then WM.item_val1 ELSE '' END ) prod_013
+	 				, max(case WM.point_code when '014' then WM.item_val1 ELSE '' END ) prod_014
+	 				, max(case WM.point_code when '015' then WM.item_val1 ELSE '' END ) prod_015
+	 				, max(case WM.point_code when '021' then WM.item_val1 ELSE '' END ) prod_021
+	 				, max(case WM.point_code when '022' then WM.item_val1 ELSE '' END ) prod_022
+	 				, max(case WM.point_code when '031' then WM.item_val1 ELSE '' END ) prod_031
+	 				, max(case WM.point_code when '032' then WM.item_val1 ELSE '' END ) prod_032
+	 				, max(case WM.point_code when '033' then WM.item_val1 ELSE '' END ) prod_033
+	 				, max(case WM.point_code when '034' then WM.item_val1 ELSE '' END ) prod_034
+	 				, max(case WM.point_code when '041' then WM.item_val1 ELSE '' END ) prod_041
+	 				, max(case WM.point_code when '042' then WM.item_val1 ELSE '' END ) prod_042
+	 				, max(case WM.point_code when '043' then WM.item_val1 ELSE '' END ) prod_043
+	 				, max(case WM.point_code when '044' then WM.item_val1 ELSE '' END ) prod_044
+	 				, max(case WM.point_code when '051' then WM.item_val1 ELSE '' END ) prod_051
+				FROM
+					wb_dummy_date WD
+	 				LEFT OUTER JOIN wb_manage_point_val WM on WD.anal_date = WM.anal_date
+	 			WHERE
+	 				WD.anal_date between #{FROM_DATE} and #{TO_DATE}
+	 				AND WM.item_type = 'P'
+	 			GROUP BY
+	 				WD.anal_date
+			) V (anal_date,prod_001,prod_002,prod_011,prod_012,prod_013,prod_014,prod_015,prod_021,prod_022,prod_031,prod_032,prod_033,prod_034,prod_041,prod_042,prod_043,prod_044,prod_051)
+	 		LEFT OUTER JOIN (
+	 			SELECT
+	 				WM.anal_date anal_date1
+	 				, sum(prod_water) total_water
+	 				, avg(drive_rate) drive
+	 				, sum(case WM.ww_code when 'PR0055' then WM.prod_water ELSE 0 END ) pr0055_prod 
+	 				, sum(case WM.ww_code when 'PR0065' then WM.prod_water ELSE 0 END ) pr0065_prod 
+	 				, sum(case WM.ww_code when 'PR0183' then WM.prod_water ELSE 0 END ) pr0183_prod
+	 				, sum(case WM.ww_code when 'PR0407' then WM.prod_water ELSE 0 END ) pr0407_prod
+	 				, sum(case WM.ww_code when 'PR0370' then WM.prod_water ELSE 0 END ) pr0370_prod 
+	 				, sum(case WM.ww_code when 'PR0710' then WM.prod_water ELSE 0 END ) pr0710_prod
+	 			FROM
+	 				wb_manage_val WM
+   				WHERE 
+   					WM.anal_date between #{FROM_DATE} and #{TO_DATE}
+   				GROUP BY 
+   					WM.anal_date
+   			) T (anal_date,total_water, drive,pr0055_prod ,pr0065_prod ,pr0183_prod ,pr0407_prod ,pr0370_prod,pr0710_prod )
+ 			ON V.anal_date = T.anal_date
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 금일생산량현황 -->
+    <select id='selectLabDayOpProdNowProdDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT
+			WM.anal_date 														ANAL_DATE
+			, sum(prod_water) 													WATER_PROD
+			, sum(take_water) 													WATER_TAKE
+			, sum(case WM.ww_code when 'PR0055' then WM.prod_water ELSE 0 END ) PR0055_PROD
+			, sum(case WM.ww_code when 'PR0065' then WM.prod_water ELSE 0 END ) PR0065_PROD
+			, sum(case WM.ww_code when 'PR0183' then WM.prod_water ELSE 0 END ) PR0183_PROD
+			, sum(case WM.ww_code when 'PR0407' then WM.prod_water ELSE 0 END ) PR0407_PROD
+			, sum(case WM.ww_code when 'PR0370' then WM.prod_water ELSE 0 END ) PR0370_PROD
+			, sum(case WM.ww_code when 'PR0710' then WM.prod_water ELSE 0 END ) PR0710_PROD
+			, sum(case WM.ww_code when 'PR0055' then WM.take_water ELSE 0 END ) PR0055_TAKE
+			, sum(case WM.ww_code when 'PR0065' then WM.take_water ELSE 0 END ) PR0065_TAKE
+			, sum(case WM.ww_code when 'PR0183' then WM.take_water ELSE 0 END ) PR0183_TAKE
+			, sum(case WM.ww_code when 'PR0407' then WM.take_water ELSE 0 END ) PR0407_TAKE
+			, sum(case WM.ww_code when 'PR0370' then WM.take_water ELSE 0 END ) PR0370_TAKE
+			, sum(case WM.ww_code when 'PR0710' then WM.take_water ELSE 0 END ) PR0710_TAKE
+			, sum(case WM.ww_code when 'PR0055' then WM.take_water ELSE 0 END ) PR0055_DRIVE
+			, sum(case WM.ww_code when 'PR0065' then WM.take_water ELSE 0 END ) PR0065_DRIVE
+			, sum(case WM.ww_code when 'PR0183' then WM.take_water ELSE 0 END ) PR0183_DRIVE
+			, sum(case WM.ww_code when 'PR0407' then WM.take_water ELSE 0 END ) PR0407_DRIVE
+			, sum(case WM.ww_code when 'PR0370' then WM.take_water ELSE 0 END ) PR0370_DRIVE
+			, sum(case WM.ww_code when 'PR0710' then WM.take_water ELSE 0 END ) PR0710_DRIVE
+		 FROM
+		 	wb_manage_val WM
+		 WHERE
+		 	WM.anal_date = #{WORK_DATE}
+		 GROUP BY
+		 	WM.anal_date
+    </select>
+    
+    <!-- 정수센터입력정보 - 실험실 측정자료 조회 - 정수센터일일운영현황 - 전력사용량현황 -->
+    <select id='selectLabDayOpPowerDataList' parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT 
+			L.ww_code																WW_CODE
+			, L.unit																UNIT
+			, L.point_code															POINT_CODE
+			, L.point_name															POINT_NAME
+	 		, (case when L.prod_price is not null then L.prod_price ELSE 0 END ) 	PROD_PRICE 
+	 		, L.l_peak																L_PEAK
+	 		, T.t_peak 																T_PEAK
+    		, T.mor																	MOR
+    		, T.eve																	EVE
+    		, T.nig																	NIG
+    		,( T.mor + T.eve+T.nig )												ALL_SUM 
+	 	from
+	 		(
+	 			select 
+	 				WMP.ww_code
+	 				, WMP.unit
+	 				, WMP.point_code
+	 				, WMP.point_name
+	 				, WMP.prod_price 
+					, max(peak) l_peak
+	 			from
+	 				wb_manage_point wmp
+	 				left outer join wb_elec_val wm on wmp.point_code = wm.point_code and wm.anal_date = #{PREV_DATE}
+	 			where
+	 				point_type='E'
+	 			group by
+	 				WMP.ww_code
+	 				, WMP.unit
+	 				, WMP.point_code
+	 				, WMP.point_name
+	 				, WMP.prod_price
+			) L(ww_code, unit, point_code, point_name, prod_price, l_peak)
+			, (
+				select 
+					WMP.ww_code
+					, WMP.unit
+					, WMP.point_code
+					, WMP.point_name	
+					, max(peak) t_peak
+					, max(morning) mor
+					, max(evening) eve
+					, max(night) nig
+	 			from
+	 				wb_manage_point wmp
+	 				left outer join wb_elec_val wm on wmp.point_code = wm.point_code and wm.anal_date = #{THIS_DATE}
+	 			where 
+	 				point_type='E'
+	 			group by
+	 				WMP.ww_code
+	 				, WMP.unit
+	 				, WMP.point_code
+	 				, WMP.point_name
+			) T(ww_code, unit, point_code, point_name,t_peak,mor, eve,nig)
+	 	where 
+	 		L.ww_code = T.ww_code 
+	 		and L.point_code = T.point_code
+    </select>
+</mapper>
